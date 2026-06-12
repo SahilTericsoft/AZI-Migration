@@ -8,6 +8,8 @@ them (monorepo), instead of the old per-service deployments.
 from __future__ import annotations
 
 from fastapi import FastAPI
+from fastapi.openapi.docs import get_redoc_html
+from fastapi.responses import HTMLResponse
 
 from core.api_docs import (
     API_CONTACT,
@@ -46,8 +48,20 @@ app = FastAPI(
     contact=API_CONTACT,
     license_info=API_LICENSE,
     openapi_tags=OPENAPI_TAGS,
+    redoc_url=None,  # default points at the broken redoc@next CDN; served below
 )
 harden_app(app)  # CORS, host allow-list, security headers, safe error handler
+
+# Pin the ReDoc bundle to a working version (FastAPI's default `redoc@next`
+# 404s on jsdelivr, leaving the page blank).
+REDOC_JS_URL = "https://cdn.jsdelivr.net/npm/redoc@2.1.5/bundles/redoc.standalone.js"
+
+
+@app.get("/redoc", include_in_schema=False)
+def redoc_html() -> HTMLResponse:
+    return get_redoc_html(
+        openapi_url=app.openapi_url, title=f"{API_TITLE} — ReDoc", redoc_js_url=REDOC_JS_URL
+    )
 
 
 @app.get("/health", tags=["health"], summary="Liveness probe")
