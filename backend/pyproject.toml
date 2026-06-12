@@ -1,0 +1,24 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [".venv", "alembic"]
+
+[tool.ruff.lint]
+# E/W pycodestyle, F pyflakes, I isort, B bugbear, C4 comprehensions,
+# UP pyupgrade, N pep8-naming, SIM simplify, RUF ruff-specific.
+select = ["E", "W", "F", "I", "B", "C4", "UP", "SIM", "RUF"]
+ignore = [
+    "E501",    # line length handled by black
+    "B008",    # FastAPI uses Depends() in defaults by design
+    "N803",    # request fields are camelCase (match the API contract)
+    "N815",    # ORM columns are camelCase (match the live DB schema)
+    "RUF012",  # mutable class attrs are fine for our controller config
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011", "E712"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+extend-exclude = "/.venv/"
