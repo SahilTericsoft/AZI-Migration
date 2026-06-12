@@ -1,5 +1,6 @@
 """Minimal app settings, read from environment / .env."""
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,6 +9,16 @@ class Settings(BaseSettings):
 
     environment: str = "development"  # development | production
     database_url: str = "postgresql+psycopg2://postgres:postgres@localhost:5432/azi_db"
+
+    @field_validator("database_url")
+    @classmethod
+    def _normalize_db_url(cls, v: str) -> str:
+        # Hosts like Fly.io / Heroku inject `postgres://...`, which SQLAlchemy 2.0
+        # rejects. Coerce any postgres scheme to the psycopg2 driver URL.
+        for prefix in ("postgres://", "postgresql://"):
+            if v.startswith(prefix):
+                return "postgresql+psycopg2://" + v[len(prefix) :]
+        return v
     jwt_secret: str = "change-me"
     jwt_expires_minutes: int = 60
     instance_code: str = "AZI"  # prefix for generated internalUserId
