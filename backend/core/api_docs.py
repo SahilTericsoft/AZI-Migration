@@ -1,5 +1,7 @@
 """OpenAPI metadata (title, description, version, tag groups) for `/docs`."""
 
+from __future__ import annotations
+
 API_TITLE = "AZI Backend"
 API_VERSION = "1.0.0"
 

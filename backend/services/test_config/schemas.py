@@ -4,6 +4,8 @@ Mirrors the legacy GkPanelService request bodies: rich list filters, view by id
 with attribute projection, code-duplicate checks.
 """
 
+from __future__ import annotations
+
 from pydantic import BaseModel
 
 from core.api import MutationBody

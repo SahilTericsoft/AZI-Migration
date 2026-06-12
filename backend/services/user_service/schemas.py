@@ -4,6 +4,8 @@ Field names are camelCase to match the legacy API payloads. Most update/list
 fields are optional so a single endpoint can cover several legacy ones.
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 from pydantic import BaseModel, EmailStr, Field

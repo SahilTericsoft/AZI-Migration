@@ -7,6 +7,8 @@ Combines GkUserService UserStaticDataController (geo) + RaceAndEthnicityControll
   - GET /dropdowns/{title}                            = view + prefix + suffix + maritalStatus
 """
 
+from __future__ import annotations
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session

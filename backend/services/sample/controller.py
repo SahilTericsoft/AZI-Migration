@@ -10,6 +10,8 @@ Ported from GkTestOrderService/TestOrderSampleController. Real business logic:
 All access is audited.
 """
 
+from __future__ import annotations
+
 from datetime import UTC, datetime
 
 from fastapi import HTTPException

@@ -3,6 +3,8 @@
 `main.py` includes this single router under the API prefix.
 """
 
+from __future__ import annotations
+
 from fastapi import APIRouter
 
 from services.user_service.access_control import router as access_control_router

@@ -1,5 +1,7 @@
 """Dynamic form model — migrated from GkDynamicFormService (Chats)."""
 
+from __future__ import annotations
+
 from sqlalchemy import JSON, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column

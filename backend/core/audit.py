@@ -5,6 +5,8 @@ entities) is recorded here: who (userId), what action, which entity + record,
 and when. Required for HIPAA's "record and examine activity" safeguard.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 
 from sqlalchemy import JSON, DateTime, Integer, String, func

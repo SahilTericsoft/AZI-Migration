@@ -7,6 +7,8 @@ Ported from GkInventoryService + GkLabInventoryService. Real business logic:
   * sub-items + lot-number lookups scoped to an item
 """
 
+from __future__ import annotations
+
 from fastapi import HTTPException
 from sqlalchemy import func, or_
 

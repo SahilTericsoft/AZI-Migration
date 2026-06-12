@@ -4,6 +4,8 @@ Legacy `from`/`to` columns are renamed to `fromUserId`/`toUserId` (DB latitude)
 since `from` is a Python keyword.
 """
 
+from __future__ import annotations
+
 from sqlalchemy import Boolean, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 

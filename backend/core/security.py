@@ -4,6 +4,8 @@ bcrypt is used directly (like the old bcryptjs), so existing password hashes
 keep verifying. JWT uses HS256 with the secret from settings.
 """
 
+from __future__ import annotations
+
 import secrets
 import string
 from datetime import UTC, datetime, timedelta

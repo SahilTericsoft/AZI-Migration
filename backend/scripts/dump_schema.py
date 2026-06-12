@@ -7,6 +7,8 @@ table for the PostgreSQL dialect.
     python -m scripts.dump_schema > schema.sql
 """
 
+from __future__ import annotations
+
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.schema import CreateIndex, CreateTable
 

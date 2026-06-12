@@ -11,6 +11,8 @@ A controller is constructed per request with the DB session and the acting user:
     PatientController(db, actor_id=current_user["id"]).create(payload)
 """
 
+from __future__ import annotations
+
 from collections.abc import Sequence
 from datetime import datetime, timedelta
 from typing import Any

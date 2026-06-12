@@ -1,5 +1,7 @@
 """Lab models — migrated from GkLabService / GkLabOsService."""
 
+from __future__ import annotations
+
 from sqlalchemy import JSON, Boolean, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column

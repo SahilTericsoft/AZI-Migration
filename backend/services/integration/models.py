@@ -4,6 +4,8 @@ AdvancedMD (GkAdvancedMDService/GkPatientService) + OCR config (GkOCRService).
 The `token` is a secret and is excluded from API responses.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 
 from sqlalchemy import JSON, DateTime, Integer, Numeric, String, Text

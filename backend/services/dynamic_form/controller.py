@@ -1,5 +1,7 @@
 """Controller for the Dynamic Form service (Chats)."""
 
+from __future__ import annotations
+
 from core.controller import BaseController
 from services.dynamic_form.models import Chat
 

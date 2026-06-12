@@ -4,6 +4,8 @@ Real logic: insurer/clearing-house uniqueness, active defaults, and
 clearing-house-scoped insurance lookups.
 """
 
+from __future__ import annotations
+
 from fastapi import HTTPException
 from sqlalchemy import func
 

@@ -5,6 +5,8 @@ GkUserService Sequelize models) so this maps onto the existing database with no
 data migration. Column names stay camelCase to match the live DB.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 
 from sqlalchemy import (

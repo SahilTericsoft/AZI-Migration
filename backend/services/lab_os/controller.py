@@ -4,6 +4,8 @@ Real logic: department name uniqueness + active default; instruments/SOPs/
 validations/sessions scoped to a lab.
 """
 
+from __future__ import annotations
+
 from fastapi import HTTPException
 from sqlalchemy import func
 

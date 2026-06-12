@@ -4,6 +4,8 @@ Real logic: derive `sampleCount` from `sampleIds` when not supplied; lab-scoped
 listing.
 """
 
+from __future__ import annotations
+
 from core.api import ok
 from core.controller import BaseController
 from services.sendout.models import SendoutBatch

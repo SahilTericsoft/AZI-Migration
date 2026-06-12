@@ -4,6 +4,8 @@ Real logic: recipient required, active by default, list scoped to a recipient,
 and a mark-read action (sets isActive=false).
 """
 
+from __future__ import annotations
+
 from fastapi import HTTPException
 
 from core.api import ok, paginate

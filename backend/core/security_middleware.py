@@ -2,6 +2,8 @@
 non-leaking error handler. Wired in `main.py` via `harden_app(app)`.
 """
 
+from __future__ import annotations
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse

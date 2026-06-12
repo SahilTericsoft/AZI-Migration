@@ -5,6 +5,8 @@ Seed data migrated verbatim from GkUserService AclModuleController
 Kept here so the router stays readable.
 """
 
+from __future__ import annotations
+
 DEFAULT_ACL_MODULES: list[dict] = [
     {
         "module": "Lab",

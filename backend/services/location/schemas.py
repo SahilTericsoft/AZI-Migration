@@ -1,5 +1,7 @@
 """Request schemas for the Location service (ported from GkFacilityService)."""
 
+from __future__ import annotations
+
 from typing import Any
 
 from pydantic import BaseModel

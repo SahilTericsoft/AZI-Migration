@@ -1,5 +1,7 @@
 """Activity log model — migrated from GkActivityLogService."""
 
+from __future__ import annotations
+
 from sqlalchemy import JSON, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 

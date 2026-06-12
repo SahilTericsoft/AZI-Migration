@@ -1,5 +1,7 @@
 """Request schemas for the Activity Log service."""
 
+from __future__ import annotations
+
 from pydantic import BaseModel
 
 from core.api import MutationBody

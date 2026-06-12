@@ -5,6 +5,8 @@ Email `from`/`to` are renamed to `fromAddress`/`toAddress` and SMS `to` to
 PHI, so they are auth-protected + audited; OTP `code`s are masked.
 """
 
+from __future__ import annotations
+
 from sqlalchemy import JSON, Boolean, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 

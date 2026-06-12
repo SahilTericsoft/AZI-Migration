@@ -1,5 +1,7 @@
 """Result models (PHI) — migrated from GkPdfGeneratorService result entities."""
 
+from __future__ import annotations
+
 from sqlalchemy import JSON, Boolean, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 

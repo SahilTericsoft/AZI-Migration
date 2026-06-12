@@ -5,6 +5,8 @@ Include those routers here as services are migrated. One process serves all of
 them (monorepo), instead of the old per-service deployments.
 """
 
+from __future__ import annotations
+
 from fastapi import FastAPI
 
 from core.api_docs import (

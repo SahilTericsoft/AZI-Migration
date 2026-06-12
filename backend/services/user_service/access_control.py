@@ -8,6 +8,8 @@ Consolidations:
 Email side-effects (credentials mail) are TODOs until the email service migrates.
 """
 
+from __future__ import annotations
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 

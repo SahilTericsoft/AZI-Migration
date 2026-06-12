@@ -5,6 +5,8 @@ endpoints are plain `def`, so FastAPI runs them in a threadpool — no async/
 event-loop complexity.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 
 from sqlalchemy import DateTime, create_engine, func

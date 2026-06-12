@@ -1,5 +1,7 @@
 """Sendout model (PHI) — migrated from GkSendoutService (SendoutBatches)."""
 
+from __future__ import annotations
+
 from sqlalchemy import JSON, Integer
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column

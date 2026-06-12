@@ -11,6 +11,8 @@ Ported from GkFacilityService/LocationController. Real business logic:
     location's `physicians` array
 """
 
+from __future__ import annotations
+
 from fastapi import HTTPException
 
 from core.api import ok

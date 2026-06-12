@@ -4,6 +4,8 @@ Real logic: AdvancedMD token upsert keyed by userName+officeKey (credentials
 rotate in place); token masked. OCR config CRUD.
 """
 
+from __future__ import annotations
+
 from core.api import ok
 from core.controller import BaseController
 from services.integration.models import (

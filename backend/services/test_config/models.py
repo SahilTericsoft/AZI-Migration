@@ -5,6 +5,8 @@ GkPanelService code lookups (CptCodes, IcdCodes). Columns follow the real
 schema; names stay camelCase to match the live DB.
 """
 
+from __future__ import annotations
+
 from sqlalchemy import JSON, Boolean, Integer, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column

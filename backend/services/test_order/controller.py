@@ -9,6 +9,8 @@ Ported from GkTestOrderService. Real business logic:
 All access is audited.
 """
 
+from __future__ import annotations
+
 from datetime import datetime, timedelta
 
 from fastapi import HTTPException

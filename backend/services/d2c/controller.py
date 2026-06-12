@@ -8,6 +8,8 @@ Ported from GkD2CService (AuthController + CustomerController). Real logic:
 Customer/address/order access is audited; the password is never returned.
 """
 
+from __future__ import annotations
+
 from fastapi import HTTPException
 
 from core.api import ok

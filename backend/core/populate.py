@@ -4,6 +4,8 @@ Batch-loads referenced rows (e.g. the `createdBy` user) and attaches a trimmed
 detail object onto each serialized record, in a single query (no N+1).
 """
 
+from __future__ import annotations
+
 from collections.abc import Sequence
 
 from sqlalchemy.orm import Session

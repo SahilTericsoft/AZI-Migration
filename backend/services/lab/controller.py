@@ -10,6 +10,8 @@ Ported from GkLabService/LabController. Real business logic:
   * toggle; lab-user assignment; lookups by admin / user
 """
 
+from __future__ import annotations
+
 from fastapi import HTTPException
 
 from core.api import ok

@@ -1,5 +1,7 @@
 """Minimal app settings, read from environment / .env."""
 
+from __future__ import annotations
+
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -19,6 +21,7 @@ class Settings(BaseSettings):
             if v.startswith(prefix):
                 return "postgresql+psycopg2://" + v[len(prefix) :]
         return v
+
     jwt_secret: str = "change-me"
     jwt_expires_minutes: int = 60
     instance_code: str = "AZI"  # prefix for generated internalUserId

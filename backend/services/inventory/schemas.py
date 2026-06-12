@@ -1,5 +1,7 @@
 """Request schemas for the Inventory service."""
 
+from __future__ import annotations
+
 from pydantic import BaseModel
 
 from core.api import MutationBody

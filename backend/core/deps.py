@@ -1,5 +1,7 @@
 """Auth dependency shared across services (HIPAA access control)."""
 
+from __future__ import annotations
+
 from fastapi import Header, HTTPException
 
 from core.security import decode_token

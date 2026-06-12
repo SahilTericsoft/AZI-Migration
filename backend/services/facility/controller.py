@@ -10,6 +10,8 @@ Ported from GkFacilityService/FacilityController. Real business logic:
   * physician array management (append / unlink)
 """
 
+from __future__ import annotations
+
 from fastapi import HTTPException
 from sqlalchemy import func
 

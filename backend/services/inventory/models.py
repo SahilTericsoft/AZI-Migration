@@ -4,6 +4,8 @@ InventoryQuantity legacy `order` column is renamed to `orderInfo` (reserved
 word). Products soft-delete via isDeleted.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 
 from sqlalchemy import JSON, Boolean, DateTime, Integer, String, Text

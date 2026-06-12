@@ -1,5 +1,7 @@
 """Dynamic form router — /dynamic-form/chats (form/chat definitions)."""
 
+from __future__ import annotations
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 

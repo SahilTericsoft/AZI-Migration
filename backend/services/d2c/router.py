@@ -1,5 +1,7 @@
 """D2C router (PHI) — customer auth, addresses, carts, kit orders."""
 
+from __future__ import annotations
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 

@@ -11,6 +11,8 @@ Ported from GkPatientService/PatientController. Real business logic:
 All access is audited; ssn/password/drivingLicenseNumber are never returned.
 """
 
+from __future__ import annotations
+
 import re
 from datetime import datetime, timedelta
 

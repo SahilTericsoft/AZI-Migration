@@ -6,6 +6,8 @@ they are all registered on Base.metadata. Run once for local dev:
     python -m scripts.init_db
 """
 
+from __future__ import annotations
+
 import core.audit  # noqa: F401  (register AuditLogs)
 import main  # noqa: F401  (registers every service's models)
 from core.database import Base, engine

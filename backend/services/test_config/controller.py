@@ -11,6 +11,8 @@ Each controller carries the real business logic from the legacy code:
 BaseController supplies only the plumbing (serialize / audit / writable).
 """
 
+from __future__ import annotations
+
 from fastapi import HTTPException
 from sqlalchemy import func, or_
 

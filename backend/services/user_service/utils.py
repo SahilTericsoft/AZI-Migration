@@ -1,5 +1,7 @@
 """Small helpers local to the user service."""
 
+from __future__ import annotations
+
 from collections.abc import Iterable
 from datetime import UTC, date, datetime
 from typing import Any

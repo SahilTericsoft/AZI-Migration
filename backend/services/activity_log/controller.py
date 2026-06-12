@@ -4,6 +4,8 @@ Real logic: bulk-friendly create, and filtered/scoped listing by
 identity / user / module / action.
 """
 
+from __future__ import annotations
+
 from core.api import ok, paginate
 from core.controller import BaseController
 from services.activity_log.models import ActivityLog

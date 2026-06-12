@@ -1,5 +1,7 @@
 """Request schemas for the Facility service (ported from GkFacilityService)."""
 
+from __future__ import annotations
+
 from typing import Any
 
 from pydantic import BaseModel

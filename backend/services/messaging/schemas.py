@@ -1,5 +1,7 @@
 """Request schemas for the Messaging service."""
 
+from __future__ import annotations
+
 from core.api import MutationBody
 
 

@@ -4,6 +4,8 @@ Departments, Instruments, SOPs, Validations and lab processing sessions. Several
 legacy columns are snake_case (kept as-is to match the DB).
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 
 from sqlalchemy import JSON, Boolean, DateTime, Integer, String

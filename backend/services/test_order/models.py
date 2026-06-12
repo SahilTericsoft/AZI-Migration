@@ -1,5 +1,7 @@
 """Test Order models (PHI) — migrated from GkTestOrderService / GkBulkUploadService."""
 
+from __future__ import annotations
+
 from sqlalchemy import JSON, Boolean, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 

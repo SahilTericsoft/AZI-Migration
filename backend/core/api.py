@@ -1,5 +1,7 @@
 """Shared API helpers used by every service."""
 
+from __future__ import annotations
+
 from collections.abc import Iterable
 from datetime import date, datetime
 from decimal import Decimal

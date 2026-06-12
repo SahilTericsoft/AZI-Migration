@@ -1,5 +1,7 @@
 """Facility models — migrated from GkFacilityService."""
 
+from __future__ import annotations
+
 from sqlalchemy import JSON, Boolean, Index, Integer, String, text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column

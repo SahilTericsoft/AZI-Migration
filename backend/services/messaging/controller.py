@@ -7,6 +7,8 @@ Ported from GkEmailService + GkSMSService. Real business logic:
   * message logs are audited (may contain PHI); OTP codes are masked on read
 """
 
+from __future__ import annotations
+
 import random
 from datetime import UTC, datetime, timedelta
 

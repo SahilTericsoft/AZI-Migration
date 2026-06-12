@@ -1,5 +1,7 @@
 """State reporting models (PHI) — migrated from GkStateReportingService."""
 
+from __future__ import annotations
+
 from sqlalchemy import JSON, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column

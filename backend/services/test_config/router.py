@@ -4,6 +4,8 @@ Surfaces the real legacy endpoints: add, list (rich filters), list-lite, view,
 edit, draft-aware toggle, and code-duplicate check.
 """
 
+from __future__ import annotations
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 

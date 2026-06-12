@@ -7,6 +7,8 @@ External login enrichment (facility/lab) and email dispatch are TODOs until
 those services are migrated.
 """
 
+from __future__ import annotations
+
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from sqlalchemy.orm import Session
 

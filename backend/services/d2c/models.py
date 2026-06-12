@@ -4,6 +4,8 @@ Customers order health kits, so customer/address/order data is PHI: protected +
 audited. Customer `password` is masked.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 
 from sqlalchemy import JSON, Boolean, DateTime, Integer, Numeric, String

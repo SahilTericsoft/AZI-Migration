@@ -3,6 +3,8 @@
 Real logic: session-scoped and order-scoped result lookups.
 """
 
+from __future__ import annotations
+
 from core.api import ok
 from core.controller import BaseController
 from services.result.models import ResultControl, ResultSample

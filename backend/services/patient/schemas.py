@@ -1,5 +1,7 @@
 """Request schemas for the Patient service (ported from GkPatientService)."""
 
+from __future__ import annotations
+
 from pydantic import BaseModel
 
 from core.api import MutationBody

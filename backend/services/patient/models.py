@@ -4,6 +4,8 @@
 responses (see SENSITIVE). Access is audited and requires authentication.
 """
 
+from __future__ import annotations
+
 from sqlalchemy import Boolean, Float, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column

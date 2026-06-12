@@ -1,6 +1,6 @@
 # Fly.io config for the AZI backend preview.
 # Rename `app` if the name is taken (must be globally unique on Fly).
-app = "azi-backend"
+app = "azi-backend-preview"
 primary_region = "iad"
 
 [build]

@@ -3,6 +3,8 @@
 Real logic: status default, and reporting-scoped session listing.
 """
 
+from __future__ import annotations
+
 from core.api import ok
 from core.controller import BaseController
 from services.state_reporting.models import StateReporting, StateReportingSession

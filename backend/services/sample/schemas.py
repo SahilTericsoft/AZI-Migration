@@ -1,5 +1,7 @@
 """Request schemas for the Sample service (ported from GkTestOrderService)."""
 
+from __future__ import annotations
+
 from typing import Any
 
 from pydantic import BaseModel
