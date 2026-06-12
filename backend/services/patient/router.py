@@ -4,8 +4,6 @@ Surfaces the real legacy endpoints: add (dedup), list (rich search), view, edit
 (allergy merge), toggle, soft-delete, recover, validate.
 """
 
-from __future__ import annotations
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 

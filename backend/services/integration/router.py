@@ -1,7 +1,5 @@
 """Integration router — AdvancedMD tokens (protected) + OCR config."""
 
-from __future__ import annotations
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 

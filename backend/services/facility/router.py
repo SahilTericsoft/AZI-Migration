@@ -4,8 +4,6 @@ Surfaces the real legacy endpoints: add, rich list, list-lite, view (with
 sub-details), edit, toggle (cascades to locations), and physician/admin links.
 """
 
-from __future__ import annotations
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
