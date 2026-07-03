@@ -36,6 +36,19 @@ def _filters(controller, query, q):
     )
 
 
+def _validate_ordering_limits(data: dict) -> None:
+    """Per-panel monthly ordering limits: 1–10, alertLimit ≤ maxLimit."""
+    if not data.get("hasOrderingLimit"):
+        return
+    alert, mx = data.get("alertLimit"), data.get("maxLimit")
+    if alert is None or mx is None:
+        raise HTTPException(400, "Alert Limit and Max Limit are required when an ordering limit is set")
+    if not (1 <= int(mx) <= 10):
+        raise HTTPException(400, "Max Limit must be between 1 and 10")
+    if not (1 <= int(alert) <= int(mx)):
+        raise HTTPException(400, "Alert Limit must be between 1 and Max Limit")
+
+
 class PanelController(BaseController):
     model = Panel
     name = "Panel"
@@ -49,6 +62,7 @@ class PanelController(BaseController):
         # legacy: reject a panel with the same name + code
         if self.db.query(Panel).filter(Panel.name == name, func.upper(Panel.code) == code).first():
             raise HTTPException(409, "Can Not Add Test Panel With Same code")
+        _validate_ordering_limits(data)
 
         payload = self.writable(data)
         payload.update(
@@ -72,6 +86,11 @@ class PanelController(BaseController):
         panel = self.db.get(Panel, panel_id)
         if not panel:
             raise HTTPException(404, "can not get List")
+        _validate_ordering_limits({
+            "hasOrderingLimit": data.get("hasOrderingLimit", panel.hasOrderingLimit),
+            "alertLimit": data.get("alertLimit", panel.alertLimit),
+            "maxLimit": data.get("maxLimit", panel.maxLimit),
+        })
         fields = self.writable(data)
         if fields.get("code"):
             fields["code"] = fields["code"].upper()

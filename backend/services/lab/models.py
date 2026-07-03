@@ -38,10 +38,13 @@ class Lab(TimestampMixin, Base):
     logo: Mapped[dict | None] = mapped_column(JSON)
     themeColor: Mapped[str | None] = mapped_column(String)
     directorDetails: Mapped[dict | None] = mapped_column(JSON)
+    primaryContact: Mapped[dict | None] = mapped_column(JSON)
     lastCompletedStep: Mapped[int | None] = mapped_column(Integer)
     labRole: Mapped[str | None] = mapped_column(String)
     referenceFacilityId: Mapped[int | None] = mapped_column(Integer)
     referenceLocationId: Mapped[int | None] = mapped_column(Integer)
+    # Uploaded onboarding docs: [{attachmentName, secureUrl, mimeType, size}].
+    attachments: Mapped[list | None] = mapped_column(JSON)
 
 
 class LabUser(TimestampMixin, Base):

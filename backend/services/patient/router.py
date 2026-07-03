@@ -4,7 +4,7 @@ Surfaces the real legacy endpoints: add (dedup), list (rich search), view, edit
 (allergy merge), toggle, soft-delete, recover, validate.
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy.orm import Session
 
 from core.api import ListIn
@@ -41,6 +41,25 @@ def validate_patient(
     return c.PatientController(db, actor_id=actor).validate(
         body.firstName, body.lastName, body.dateOfBirth
     )
+
+
+@router.get("/patients/flagged-count", tags=PAT)
+def flagged_patient_count(
+    db: Session = Depends(get_db), actor: int = Depends(require_user_id)
+):
+    """Counts of patients who crossed the alert / max sample limit (for the flag button)."""
+    return c.PatientController(db, actor_id=actor).flagged_count()
+
+
+@router.post("/patients/bulk-upload", tags=PAT)
+async def bulk_upload_patients(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    actor: int = Depends(require_user_id),
+):
+    """Create patients in bulk from a CSV (firstName, lastName, dateOfBirth required)."""
+    content = await file.read()
+    return c.PatientController(db, actor_id=actor).bulk_upload(content, actor)
 
 
 @router.get("/patients/{patient_id}", tags=PAT)

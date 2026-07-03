@@ -14,6 +14,7 @@ Ported from GkFacilityService/LocationController. Real business logic:
 from __future__ import annotations
 
 from fastapi import HTTPException
+from sqlalchemy import func
 
 from core.api import ok
 from core.controller import BaseController
@@ -37,11 +38,25 @@ class LocationController(BaseController):
             raise HTTPException(400, "Facility is inactive")
 
         name = (data.get("name") or "").strip()
+        if not name:
+            raise HTTPException(400, "name is required")
+        # Duplicate validation: a location name must be unique within its facility.
+        dup = (
+            self.db.query(Location)
+            .filter(
+                func.lower(Location.name) == name.lower(),
+                Location.facilityId == data.get("facilityId"),
+            )
+            .first()
+        )
+        if dup:
+            raise HTTPException(409, "A location with this name already exists for this facility")
         payload = self.writable(data)
         payload.update(
             name=name,
             code=name,
             status="draft",
+            isActive=False,
             createdBy=data.get("loginUserId"),
             internalLocationId=daily_sequence_id(self.db, Location),
         )

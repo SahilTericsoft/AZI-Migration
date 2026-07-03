@@ -1,12 +1,16 @@
 """Test Order router (PHI) — all entities protected + audited."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 
+from core.api import ok
+from core import storage
 from core.database import get_db
 from core.deps import require_user_id
 from services.test_order import controller as c
 from services.test_order import schemas as s
+from services.test_order.models import Order
 
 router = APIRouter(prefix="/test-order")
 ORD = ["test-order: orders"]
@@ -50,6 +54,37 @@ def delete_order(
     order_id: int, db: Session = Depends(get_db), actor: int = Depends(require_user_id)
 ):
     return c.OrderController(db, actor_id=actor).delete(order_id)
+
+
+@router.post("/orders/{order_id}/attachments", tags=ORD)
+async def upload_order_attachment(
+    order_id: int,
+    attachmentName: str = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    actor: int = Depends(require_user_id),
+):
+    """Upload an order document to Azure Blob and record it on the order.
+
+    Returns 503 until `AZURE_STORAGE_CONNECTION_STRING` is configured.
+    """
+    order = db.get(Order, order_id)
+    if not order:
+        raise HTTPException(404, "Order not found")
+    data = await file.read()
+    url = storage.upload_attachment(
+        data, file.filename or "attachment", file.content_type, prefix=f"order/{order_id}"
+    )
+    record = {
+        "attachmentName": attachmentName,
+        "secureUrl": url,
+        "mimeType": file.content_type,
+        "size": len(data),
+    }
+    order.attachments = [*(order.attachments or []), record]
+    flag_modified(order, "attachments")
+    db.commit()
+    return ok(record, "Attachment uploaded")
 
 
 # ------------------------------------------------------------------ results

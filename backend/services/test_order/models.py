@@ -33,6 +33,8 @@ class Order(TimestampMixin, Base):
     createdByDetails: Mapped[dict | None] = mapped_column(JSON)
     source: Mapped[str | None] = mapped_column(String)
     orderPlacedTime: Mapped[str | None] = mapped_column(String)
+    # Uploaded order docs: [{attachmentName, secureUrl, mimeType, size}].
+    attachments: Mapped[list | None] = mapped_column(JSON)
 
 
 class OrderResult(TimestampMixin, Base):

@@ -87,6 +87,12 @@ class Panel(TimestampMixin, Base):
     sampleType: Mapped[str | None] = mapped_column(String)
     biomarkerIds: Mapped[list | None] = mapped_column(ARRAY(Integer))
     internalPanelId: Mapped[str | None] = mapped_column(String)
+    # Per-patient monthly ordering limits. A patient is "alert"-flagged when their
+    # order count for this panel in the current month reaches alertLimit, and
+    # "max"-flagged when it reaches maxLimit.
+    hasOrderingLimit: Mapped[bool | None] = mapped_column(Boolean, default=False)
+    alertLimit: Mapped[int | None] = mapped_column(Integer)
+    maxLimit: Mapped[int | None] = mapped_column(Integer)
 
 
 class CptCode(TimestampMixin, Base):

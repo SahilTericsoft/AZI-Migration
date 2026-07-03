@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pydantic import BaseModel
+
 from core.api import MutationBody
 
 
@@ -15,9 +17,37 @@ class DepartmentUpdate(MutationBody):
 
 class InstrumentCreate(MutationBody):
     instrument: str
+    loginUserId: int | None = None
 
 
 class InstrumentUpdate(MutationBody):
+    pass
+
+
+class InstrumentSearchQuery(BaseModel):
+    page: int | None = None
+    limit: int | None = None
+    search: str | None = None
+    labId: int | None = None
+    categories: list[str] | None = None
+    statuses: list[str] | None = None
+    createdByIds: list[int] | None = None
+    startDate: str | None = None
+    endDate: str | None = None
+
+
+class MaintenanceLogIn(MutationBody):
+    date: str | None = None
+    performedBy: str | None = None
+    activity: str | None = None
+    notes: str | None = None
+
+
+class ReagentCreate(MutationBody):
+    name: str
+
+
+class ReagentUpdate(MutationBody):
     pass
 
 
@@ -43,3 +73,17 @@ class LabSessionCreate(MutationBody):
 
 class LabSessionUpdate(MutationBody):
     pass
+
+
+class OrderReportCreate(MutationBody):
+    name: str
+    testIds: list[int]
+
+
+class OrderReportListQuery(MutationBody):
+    page: int | None = None
+    limit: int | None = None
+    search: str | None = None
+    createdByIds: list[int] | None = None
+    startDate: str | None = None
+    endDate: str | None = None

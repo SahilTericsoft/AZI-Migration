@@ -13,21 +13,28 @@ All access is audited; ssn/password/drivingLicenseNumber are never returned.
 
 from __future__ import annotations
 
+import csv
+import io
 import re
+from collections import defaultdict
 from datetime import datetime, timedelta
 
 from fastapi import HTTPException
-from sqlalchemy import asc, desc, or_
+from sqlalchemy import asc, desc, func, or_
 
 from core.api import ok, paginate
 from core.controller import BaseController
 from core.ids import daily_sequence_id
+from core.populate import attach_related
 from services.patient.models import (
     PATIENT_SENSITIVE,
     Allergy,
     Patient,
     PatientInsurance,
 )
+from services.sample.models import OrderSample
+from services.test_config.models import Panel
+from services.test_order.models import Order
 
 _LOWER_FIELDS = (
     "firstName",
@@ -184,10 +191,29 @@ class PatientController(BaseController):
                 query = query.filter(Patient.isActive.is_(False))
         if q.genders:
             query = query.filter(Patient.gender.in_(q.genders))
+        if q.cities:
+            query = query.filter(func.lower(Patient.city).in_([c.lower() for c in q.cities]))
         if q.createdByIds:
             query = query.filter(Patient.createdBy.in_(q.createdByIds))
         if q.specialPatientTypes:
             query = query.filter(Patient.specialPatientType.in_(q.specialPatientTypes))
+
+        # Order/sample-derived filters (facility, location, panel, test) and the
+        # alert-limit flag all resolve to a set of patient ids we intersect in.
+        id_sets: list[set[int]] = []
+        if q.facilityIds or q.locationIds or q.panelIds or q.testIds:
+            id_sets.append(
+                self._order_patient_ids(
+                    facility_ids=q.facilityIds,
+                    location_ids=q.locationIds,
+                    panel_ids=self._resolve_panel_ids(q.panelIds, q.testIds),
+                )
+            )
+        if q.isAlertPatientFlag:
+            id_sets.append(self._flagged_patient_ids())
+        if id_sets:
+            allowed = set.intersection(*id_sets) if len(id_sets) > 1 else id_sets[0]
+            query = query.filter(Patient.id.in_(allowed or {0}))
         if q.search and q.search.strip():
             term = f"%{q.search.strip().lower()}%"
             query = query.filter(
@@ -216,7 +242,167 @@ class PatientController(BaseController):
         page, limit = q.page or 1, q.limit or 10
         total = query.count()
         rows = query.offset((page - 1) * limit).limit(limit).all()
-        return ok(paginate([self.serialize(r) for r in rows], total, page, limit), "success")
+        data = [self.serialize(r) for r in rows]
+        # Populate "Added By" for the list (createdByDetails).
+        from services.user_service.models import User
+
+        attach_related(
+            self.db, data, model=User, source_field="createdBy", target_field="createdByDetails"
+        )
+        self._attach_linked(data)
+        return ok(paginate(data, total, page, limit), "success")
+
+    # ---- order/sample-derived helpers ----
+    def _resolve_panel_ids(
+        self, panel_ids: list[int] | None, test_ids: list[int] | None
+    ) -> list[int] | None:
+        """Combine explicit panel ids with the panels that contain the given tests."""
+        result: set[int] = set(panel_ids or [])
+        if test_ids:
+            wanted = set(test_ids)
+            for panel in self.db.query(Panel.id, Panel.testIds).all():
+                if wanted & set(panel.testIds or []):
+                    result.add(panel.id)
+            if not result:
+                return [0]  # no panel matches → match nothing
+        return list(result) if result else None
+
+    def _order_patient_ids(
+        self,
+        *,
+        facility_ids: list[int] | None = None,
+        location_ids: list[int] | None = None,
+        panel_ids: list[int] | None = None,
+    ) -> set[int]:
+        query = self.db.query(Order.patientId)
+        if panel_ids is not None:
+            query = query.join(OrderSample, OrderSample.orderId == Order.id).filter(
+                OrderSample.panelId.in_(panel_ids)
+            )
+        if facility_ids:
+            query = query.filter(Order.facilityId.in_(facility_ids))
+        if location_ids:
+            query = query.filter(Order.locationId.in_(location_ids))
+        return {pid for (pid,) in query.distinct() if pid}
+
+    def _flag_patient_sets(self) -> tuple[set[int], set[int]]:
+        """Return (alerted, maxed) patient ids based on this month's panel orders.
+
+        Each panel may set a per-patient monthly ordering limit (alertLimit /
+        maxLimit). A patient whose order count for a limited panel this month
+        reaches maxLimit is "maxed"; reaching alertLimit (but not maxLimit) is
+        "alerted". A patient maxed on any panel takes precedence over alerted.
+        """
+        limits = {
+            p.id: (p.alertLimit, p.maxLimit)
+            for p in self.db.query(Panel.id, Panel.alertLimit, Panel.maxLimit).filter(
+                Panel.hasOrderingLimit.is_(True), Panel.maxLimit.isnot(None)
+            )
+        }
+        if not limits:
+            return set(), set()
+
+        month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        counts = (
+            self.db.query(Order.patientId, OrderSample.panelId, func.count().label("cnt"))
+            .join(OrderSample, OrderSample.orderId == Order.id)
+            .filter(
+                Order.createdAt >= month_start,
+                Order.patientId.isnot(None),
+                OrderSample.panelId.isnot(None),
+            )
+            .group_by(Order.patientId, OrderSample.panelId)
+            .all()
+        )
+        alerted: set[int] = set()
+        maxed: set[int] = set()
+        for patient_id, panel_id, cnt in counts:
+            lim = limits.get(panel_id)
+            if not lim:
+                continue
+            alert_lim, max_lim = lim
+            if max_lim and cnt >= max_lim:
+                maxed.add(patient_id)
+            elif alert_lim and cnt >= alert_lim:
+                alerted.add(patient_id)
+        return alerted, maxed
+
+    def _flagged_patient_ids(self) -> set[int]:
+        alerted, maxed = self._flag_patient_sets()
+        return alerted | maxed
+
+    def flagged_count(self) -> dict:
+        """Counts of patients who crossed the alert and the (stricter) max limit."""
+        alerted, maxed = self._flag_patient_sets()
+        return ok(
+            {"alertLimitCount": len(alerted - maxed), "maxLimitCount": len(maxed)},
+            "Flagged patient counts",
+        )
+
+    def _attach_linked(self, data: list[dict]) -> None:
+        """Attach distinct linked facilities/locations from the patients' orders."""
+        ids = [d["id"] for d in data if d.get("id")]
+        if not ids:
+            return
+        rows = (
+            self.db.query(
+                Order.patientId,
+                Order.facilityId,
+                Order.facilityDetails,
+                Order.locationId,
+                Order.locationDetails,
+            )
+            .filter(Order.patientId.in_(ids))
+            .all()
+        )
+        fac: dict[int, dict[int, dict]] = defaultdict(dict)
+        loc: dict[int, dict[int, dict]] = defaultdict(dict)
+        for pid, fid, fdet, lid, ldet in rows:
+            if fid:
+                fdet = fdet or {}
+                fac[pid][fid] = {"id": fid, "name": fdet.get("name") or fdet.get("code")}
+            if lid:
+                ldet = ldet or {}
+                loc[pid][lid] = {"id": lid, "name": ldet.get("name") or ldet.get("code")}
+        for d in data:
+            d["linkedFacilities"] = list(fac.get(d["id"], {}).values())
+            d["linkedLocations"] = list(loc.get(d["id"], {}).values())
+
+    def bulk_upload(self, content: bytes, login_user_id: int | None) -> dict:
+        """Create patients from a CSV (firstName,lastName,dateOfBirth required)."""
+        try:
+            text = content.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            raise HTTPException(400, "File must be UTF-8 encoded CSV")
+        reader = csv.DictReader(io.StringIO(text))
+        created, skipped, errors = 0, 0, []
+        for i, raw in enumerate(reader, start=2):  # row 1 is the header
+            row = {(k or "").strip(): (v or "").strip() for k, v in raw.items()}
+            first, last, dob = row.get("firstName"), row.get("lastName"), row.get("dateOfBirth")
+            if not first or not last or not dob:
+                errors.append({"row": i, "error": "firstName, lastName and dateOfBirth are required"})
+                continue
+            code = patient_unique_code(first, last, dob)
+            if self.db.query(Patient).filter(Patient.code == code).first():
+                skipped += 1
+                continue
+            allowed = {k: v for k, v in row.items() if v != ""}
+            payload = self._normalize(self.writable(allowed))
+            payload.update(
+                code=code,
+                isActive=True,
+                isDeleted=False,
+                isPasswordSet=False,
+                internalPatientId=daily_sequence_id(self.db, Patient),
+                createdBy=login_user_id,
+            )
+            self.db.add(Patient(**payload))
+            created += 1
+        self.db.commit()
+        return ok(
+            {"created": created, "skipped": skipped, "errors": errors},
+            f"{created} patient(s) imported",
+        )
 
 
 class PatientInsuranceController(BaseController):

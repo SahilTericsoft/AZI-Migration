@@ -26,6 +26,13 @@ class Settings(BaseSettings):
     jwt_expires_minutes: int = 60
     instance_code: str = "AZI"  # prefix for generated internalUserId
 
+    # ---- Azure Blob storage (lab attachments) ----
+    # Connection string for the storage account that owns the attachment
+    # container. Kept in the environment (.env / Fly secret); empty disables
+    # uploads (the endpoint returns 503 until it's configured + deployed).
+    azure_storage_connection_string: str = ""
+    azure_lab_attachments_container: str = "lab-attachments"
+
     # ---- security ----
     # Comma-separated allowed CORS origins (empty = none allowed).
     cors_origins: str = ""

@@ -30,6 +30,7 @@ class LabListQuery(BaseModel):
     limit: int | None = None
     search: str | None = None
     labTypes: list[str] | None = None
+    cities: list[str] | None = None
     statuses: list[str] | None = None
     createdByIds: list[int] | None = None
     startDate: str | None = None

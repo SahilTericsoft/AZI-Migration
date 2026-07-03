@@ -4,9 +4,11 @@ Surfaces the real legacy endpoints: add, rich list, list-lite, view (with
 sub-details), edit, toggle (cascades to locations), and physician/admin links.
 """
 
-from fastapi import APIRouter, Depends
+import httpx
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from core.api import ok
 from core.database import get_db
 from services.facility import controller as c
 from services.facility import schemas as s
@@ -14,6 +16,42 @@ from services.facility import schemas as s
 router = APIRouter(prefix="/facility")
 FAC = ["facility: facilities"]
 FU = ["facility: facility-users"]
+
+
+@router.get("/physicians/npi-lookup", tags=FAC)
+async def npi_lookup(npi: str):
+    """Look up a provider by NPI via the public CMS NPI Registry.
+
+    Returns the normalised name / contact fields the onboarding form needs.
+    """
+    if not (npi.isdigit() and len(npi) == 10):
+        raise HTTPException(400, "NPI Number should be 10 digits")
+    url = "https://npiregistry.cms.hhs.gov/api/"
+    params = {"version": "2.1", "number": npi}
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(url, params=params)
+            resp.raise_for_status()
+            payload = resp.json()
+    except httpx.HTTPError:
+        raise HTTPException(502, "Could not reach the NPI registry")
+
+    results = payload.get("results") or []
+    if not results:
+        raise HTTPException(404, "No provider found for that NPI")
+    basic = results[0].get("basic", {})
+    addresses = results[0].get("addresses", []) or [{}]
+    return ok(
+        {
+            "npiNumber": npi,
+            "firstName": basic.get("first_name", ""),
+            "middleName": basic.get("middle_name", ""),
+            "lastName": basic.get("last_name", ""),
+            "mobileNumber": (addresses[0].get("telephone_number") or "").replace("-", ""),
+            "faxNumber": (addresses[0].get("fax_number") or "").replace("-", ""),
+        },
+        "Provider found",
+    )
 
 
 # ---------------------------------------------------------------- facilities

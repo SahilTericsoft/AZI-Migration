@@ -13,6 +13,7 @@ Ported from GkLabService/LabController. Real business logic:
 from __future__ import annotations
 
 from fastapi import HTTPException
+from sqlalchemy import func
 
 from core.api import ok
 from core.controller import BaseController
@@ -33,13 +34,24 @@ class LabController(BaseController):
             raise HTTPException(400, "name is required")
         if data.get("labRole") not in _LAB_ROLES:
             raise HTTPException(400, "labRole must be sendLab, receiveLab or sendReceiveLab")
+
+        # Duplicate validation: name (case-insensitive) and CLIA ID must be unique.
+        if self.db.query(Lab).filter(func.lower(Lab.name) == name.lower()).first():
+            raise HTTPException(409, "A lab with this name already exists")
+        clia = (data.get("cliaId") or "").strip()
+        if clia and self.db.query(Lab).filter(func.upper(Lab.cliaId) == clia.upper()).first():
+            raise HTTPException(409, "A lab with this CLIA ID already exists")
+
+        # Labs onboarded through this flow are external partner labs by default.
+        lab_type = data.get("labType") or "externalLab"
         payload = self.writable(data)
         payload.update(
             name=name,
             code=name.lower(),
             status="draft",
             isActive=False,
-            isSdiLab=(data.get("labType") != "externalLab"),
+            labType=lab_type,
+            isSdiLab=(lab_type != "externalLab"),
             createdBy=data.get("loginUserId"),
         )
         lab = Lab(**payload)
@@ -55,7 +67,23 @@ class LabController(BaseController):
             raise HTTPException(404, "can not get List")
         fields = self.writable(data)
         if fields.get("name"):
-            fields["code"] = fields["name"].strip().lower()
+            new_name = fields["name"].strip()
+            dup = (
+                self.db.query(Lab)
+                .filter(func.lower(Lab.name) == new_name.lower(), Lab.id != lab_id)
+                .first()
+            )
+            if dup:
+                raise HTTPException(409, "A lab with this name already exists")
+            fields["code"] = new_name.lower()
+        if fields.get("cliaId"):
+            dup = (
+                self.db.query(Lab)
+                .filter(func.upper(Lab.cliaId) == fields["cliaId"].strip().upper(), Lab.id != lab_id)
+                .first()
+            )
+            if dup:
+                raise HTTPException(409, "A lab with this CLIA ID already exists")
         for key, value in fields.items():
             setattr(lab, key, value)
         self.db.commit()
@@ -93,6 +121,8 @@ class LabController(BaseController):
         query = self.db.query(Lab)
         if q.labTypes:
             query = query.filter(Lab.labType.in_(q.labTypes))
+        if q.cities:
+            query = query.filter(func.lower(Lab.city).in_([c.lower() for c in q.cities]))
         query = self.apply_filters(
             query,
             search=q.search,

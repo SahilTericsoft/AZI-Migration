@@ -28,8 +28,11 @@ from services.facility.router import router as facility_router
 from services.integration.router import router as integration_router
 from services.inventory.router import router as inventory_router
 from services.lab.router import router as lab_router
+from services.dashboard.router import router as dashboard_router
 from services.lab_os.router import router as lab_os_router
 from services.location.router import router as location_router
+from services.support.router import legacy_router as support_legacy_router
+from services.support.router import router as support_router
 from services.messaging.router import router as messaging_router
 from services.notification.router import router as notification_router
 from services.patient.router import router as patient_router
@@ -84,6 +87,9 @@ app.include_router(activity_log_router)  # Activity Log
 app.include_router(messaging_router)  # Email + SMS
 app.include_router(inventory_router)  # Inventory (+ lab inventory)
 app.include_router(lab_os_router)  # Lab Operations
+app.include_router(dashboard_router)  # Dashboard aggregations
+app.include_router(support_router)  # Support Center + Resources
+app.include_router(support_legacy_router)  # legacy helpSection alias
 app.include_router(dynamic_form_router)  # Dynamic Form
 app.include_router(billing_router)  # Billing references
 app.include_router(d2c_router)  # Direct-to-Consumer (PHI)

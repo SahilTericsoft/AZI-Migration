@@ -23,9 +23,15 @@ class PatientListQuery(BaseModel):
     limit: int | None = None
     search: str | None = None
     genders: list[str] | None = None
+    cities: list[str] | None = None
     createdByIds: list[int] | None = None
     specialPatientTypes: list[str] | None = None
     statuses: list[str] | None = None  # active / inactive / deleted
+    isAlertPatientFlag: bool | None = None
+    facilityIds: list[int] | None = None
+    locationIds: list[int] | None = None
+    panelIds: list[int] | None = None
+    testIds: list[int] | None = None
     startDate: str | None = None
     endDate: str | None = None
     sort: dict[str, str] | None = None

@@ -256,11 +256,26 @@ CREATE TABLE IF NOT EXISTS "Departments" (
 	PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS "Reagents" (
+	id SERIAL NOT NULL,
+	name VARCHAR,
+	code VARCHAR,
+	inventory_category VARCHAR,
+	type VARCHAR,
+	manufacturer VARCHAR,
+	"labId" INTEGER,
+	"createdBy" INTEGER,
+	"isActive" BOOLEAN,
+	"createdAt" TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+	"updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+	PRIMARY KEY (id)
+);
+
 CREATE TABLE IF NOT EXISTS "EmailLogs" (
-	id SERIAL NOT NULL, 
-	"fromAddress" VARCHAR, 
-	"toAddress" VARCHAR, 
-	purpose VARCHAR, 
+	id SERIAL NOT NULL,
+	"fromAddress" VARCHAR,
+	"toAddress" VARCHAR,
+	purpose VARCHAR,
 	message TEXT, 
 	"isDelivered" BOOLEAN, 
 	error VARCHAR, 

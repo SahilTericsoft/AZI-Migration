@@ -14,6 +14,7 @@ from sqlalchemy import func, or_
 
 from core.api import ok, paginate
 from core.controller import BaseController
+from core.populate import attach_related
 from services.inventory.models import (
     Barcode,
     BarcodeSession,
@@ -73,6 +74,7 @@ class ItemController(BaseController):
             raise HTTPException(409, "Item Name already exists")
         payload = self.writable({**data, "name": name})
         payload.setdefault("isActive", True)
+        payload["createdBy"] = data.get("loginUserId") or data.get("createdBy")
         item = InventoryItem(**payload)
         self.db.add(item)
         self.db.commit()
@@ -138,6 +140,9 @@ class ItemController(BaseController):
             d = self.serialize(item)
             d["isLowStock"] = _low_stock(item.quantity, item.alertQuantity)
             docs.append(d)
+        from services.user_service.models import User
+
+        attach_related(self.db, docs, model=User, source_field="createdBy", target_field="createdByDetails")
         return ok(paginate(docs, total, page, limit), "success")
 
     def lot_numbers(self, item_id: int) -> dict:
@@ -187,13 +192,47 @@ class QuantityController(BaseController):
     model = InventoryQuantity
     name = "Inventory quantity"
 
+    def _adjust(self, item_id: int, sub_id: int | None, delta: int) -> None:
+        item = self.db.get(InventoryItem, item_id)
+        if not item:
+            raise HTTPException(404, "Invalid item id")
+        item.quantity = max(0, (item.quantity or 0) + delta)
+        if sub_id:
+            sub = self.db.get(InventorySubItem, sub_id)
+            if sub:
+                sub.quantity = max(0, (sub.quantity or 0) + delta)
+
+    def add_quantity(self, data: dict, actor: int | None) -> dict:
+        qty = int(data.get("quantity") or 0)
+        row = InventoryQuantity(**self.writable({**data, "event": "add", "isRemoved": False, "createdBy": actor}))
+        self.db.add(row)
+        self._adjust(data.get("itemId"), data.get("subItemId"), qty)
+        self.db.commit()
+        self.db.refresh(row)
+        return ok(self.serialize(row), "Quantity added")
+
+    def remove_quantity(self, data: dict, actor: int | None) -> dict:
+        qty = int(data.get("quantity") or 0)
+        event = data.get("event") or "remove"  # remove | usage
+        row = InventoryQuantity(**self.writable({**data, "event": event, "isRemoved": False, "createdBy": actor}))
+        self.db.add(row)
+        self._adjust(data.get("itemId"), data.get("subItemId"), -qty)
+        self.db.commit()
+        self.db.refresh(row)
+        return ok(self.serialize(row), "Quantity updated")
+
     def list_by_item(self, item_id: int) -> dict:
+        from services.user_service.models import User
+
         rows = (
             self.db.query(InventoryQuantity)
-            .filter(InventoryQuantity.itemId == item_id, InventoryQuantity.isRemoved.isnot(True))
+            .filter(InventoryQuantity.itemId == item_id)
+            .order_by(InventoryQuantity.createdAt.desc())
             .all()
         )
-        return ok([self.serialize(r) for r in rows], "Quantity list")
+        data = [self.serialize(r) for r in rows]
+        attach_related(self.db, data, model=User, source_field="createdBy", target_field="createdByDetails")
+        return ok(data, "Quantity list")
 
 
 class ProductImageController(BaseController):

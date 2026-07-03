@@ -27,6 +27,26 @@ class Department(TimestampMixin, Base):
     isActive: Mapped[bool | None] = mapped_column(Boolean, default=True)
 
 
+class Reagent(TimestampMixin, Base):
+    """Reagent reference data (ported from GkLabOsService reagent inventory).
+
+    Used as a picklist when configuring a Test/Panel; `Tests.reagentIds` holds
+    the selected ids.
+    """
+
+    __tablename__ = "Reagents"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str | None] = mapped_column(String)
+    code: Mapped[str | None] = mapped_column(String)
+    inventory_category: Mapped[str | None] = mapped_column(String)
+    type: Mapped[str | None] = mapped_column(String)
+    manufacturer: Mapped[str | None] = mapped_column(String)
+    labId: Mapped[int | None] = mapped_column(Integer)
+    createdBy: Mapped[int | None] = mapped_column(Integer)
+    isActive: Mapped[bool | None] = mapped_column(Boolean, default=True)
+
+
 class Instrument(TimestampMixin, Base):
     __tablename__ = "Instruments"
 
@@ -44,12 +64,16 @@ class Instrument(TimestampMixin, Base):
     calibration_frequency: Mapped[str | None] = mapped_column(String)
     calibration_type: Mapped[str | None] = mapped_column(String)
     vendor_name: Mapped[str | None] = mapped_column(String)
+    vendor_phone_number: Mapped[str | None] = mapped_column(String)
     vendor_email_address: Mapped[str | None] = mapped_column(String)
     created_by: Mapped[int | None] = mapped_column(Integer)
     labId: Mapped[int | None] = mapped_column(Integer)
     isLinked: Mapped[bool | None] = mapped_column(Boolean)
     plateType: Mapped[str | None] = mapped_column(String)
     status: Mapped[str | None] = mapped_column(String)
+    # Uploaded docs + preventative maintenance log entries.
+    attachments: Mapped[list | None] = mapped_column(JSON)
+    maintenanceLogs: Mapped[list | None] = mapped_column(JSON)
 
 
 class Sop(TimestampMixin, Base):
@@ -94,3 +118,21 @@ class LabSession(TimestampMixin, Base):
     lab_id: Mapped[int | None] = mapped_column(Integer)
     is_processed: Mapped[bool | None] = mapped_column(Boolean)
     orderType: Mapped[str | None] = mapped_column(String)
+
+
+class OrderReportHeader(TimestampMixin, Base):
+    """Auto-trigger config: an "Order Report Heading" groups one or more test
+    panels under a report layout so the system emits a combined report.
+
+    Ported from GkLabOsService order-report-header (settings/orderReportHeader*).
+    """
+
+    __tablename__ = "OrderReportHeaders"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    triggerType: Mapped[str | None] = mapped_column(String, default="Order Report Heading")
+    name: Mapped[str | None] = mapped_column(String)
+    layout: Mapped[str | None] = mapped_column(String, default="layout6")
+    testIds: Mapped[list | None] = mapped_column(ARRAY(Integer))
+    createdBy: Mapped[int | None] = mapped_column(Integer)
+    isActive: Mapped[bool | None] = mapped_column(Boolean, default=True)

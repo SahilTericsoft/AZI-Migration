@@ -1,10 +1,12 @@
 """Inventory router — explicit routes wired to the controllers."""
 
 from fastapi import APIRouter, Depends
+
 from sqlalchemy.orm import Session
 
 from core.api import ListIn
 from core.database import get_db
+from core.deps import require_user_id
 from services.inventory import controller as c
 from services.inventory import schemas as s
 
@@ -73,6 +75,16 @@ def delete_sub_item(sub_id: int, db: Session = Depends(get_db)):
 @router.post("/quantities", tags=TAG)
 def add_quantity(body: s.QuantityCreate, db: Session = Depends(get_db)):
     return c.QuantityController(db).create(body.model_dump(exclude_unset=True))
+
+
+@router.post("/quantities/add", tags=TAG)
+def add_stock(body: s.QuantityCreate, db: Session = Depends(get_db), actor: int = Depends(require_user_id)):
+    return c.QuantityController(db).add_quantity(body.model_dump(exclude_unset=True), actor)
+
+
+@router.post("/quantities/remove", tags=TAG)
+def remove_stock(body: s.QuantityCreate, db: Session = Depends(get_db), actor: int = Depends(require_user_id)):
+    return c.QuantityController(db).remove_quantity(body.model_dump(exclude_unset=True), actor)
 
 
 @router.put("/quantities/{q_id}", tags=TAG)
