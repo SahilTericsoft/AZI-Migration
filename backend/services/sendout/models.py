@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import JSON, Integer
+from sqlalchemy import JSON, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -18,3 +18,6 @@ class SendoutBatch(TimestampMixin, Base):
     panelIds: Mapped[list | None] = mapped_column(ARRAY(JSON))
     sampleIds: Mapped[list | None] = mapped_column(ARRAY(Integer))
     createdBy: Mapped[int | None] = mapped_column(Integer)
+    # --- Added to match legacy AI-Portal V2 SendoutBatches schema (MIGRATION_GAPS.md) ---
+    labName: Mapped[str | None] = mapped_column(String)
+    testIds: Mapped[list | None] = mapped_column(ARRAY(JSON))

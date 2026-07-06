@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from sqlalchemy import JSON, Boolean, Integer, String
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
 from core.database import Base, TimestampMixin
@@ -35,6 +36,27 @@ class Order(TimestampMixin, Base):
     orderPlacedTime: Mapped[str | None] = mapped_column(String)
     # Uploaded order docs: [{attachmentName, secureUrl, mimeType, size}].
     attachments: Mapped[list | None] = mapped_column(JSON)
+    # --- Added to match legacy AI-Portal V2 Orders schema (MIGRATION_GAPS.md) ---
+    labId: Mapped[int | None] = mapped_column(Integer)
+    primaryInsuranceId: Mapped[int | None] = mapped_column(Integer)
+    secondaryInsuranceId: Mapped[int | None] = mapped_column(Integer)
+    tertiaryInsuranceId: Mapped[int | None] = mapped_column(Integer)
+    billingMode: Mapped[str | None] = mapped_column(String)
+    icdCodes: Mapped[list | None] = mapped_column(ARRAY(String))
+    icdCodeDetails: Mapped[list | None] = mapped_column(ARRAY(JSON))
+    allergies: Mapped[list | None] = mapped_column(ARRAY(String))
+    allergieIds: Mapped[list | None] = mapped_column(ARRAY(Integer))
+    medicationDetails: Mapped[list | None] = mapped_column(ARRAY(JSON))
+    integrationDetails: Mapped[dict | None] = mapped_column(JSON)
+    internalOrderId: Mapped[str | None] = mapped_column(String)
+    rejectionDetails: Mapped[dict | None] = mapped_column(JSON)
+    rawOrderResultData: Mapped[dict | None] = mapped_column(JSON)
+    priorityOrderStatus: Mapped[str | None] = mapped_column(String)
+    resultSentToPatient: Mapped[bool | None] = mapped_column(Boolean)
+    externalReferenceNumber: Mapped[str | None] = mapped_column(String)
+    sampleDraftDetails: Mapped[dict | None] = mapped_column(JSON)
+    isDiscarded: Mapped[bool | None] = mapped_column(Boolean)
+    testOrderReportTitle: Mapped[str | None] = mapped_column(String)
 
 
 class OrderResult(TimestampMixin, Base):
@@ -82,9 +104,13 @@ class PatientVisit(TimestampMixin, Base):
     attendingDoctorId: Mapped[int | None] = mapped_column(Integer)
     attendingDoctorFamilyName: Mapped[str | None] = mapped_column(String)
     attendingDoctorGivenName: Mapped[str | None] = mapped_column(String)
+    attendingDoctorSecondAndFurtherGivenName: Mapped[str | None] = mapped_column(String)
+    attendingDoctorDegree: Mapped[str | None] = mapped_column(String)
     referringDoctorId: Mapped[int | None] = mapped_column(Integer)
     referringDoctorFamilyName: Mapped[str | None] = mapped_column(String)
     referringDoctorGivenName: Mapped[str | None] = mapped_column(String)
+    referringDoctorSecondAndFurtherGivenName: Mapped[str | None] = mapped_column(String)
+    referringDoctorDegree: Mapped[str | None] = mapped_column(String)
     hospitalService: Mapped[str | None] = mapped_column(String)
     patientType: Mapped[str | None] = mapped_column(String)
     visitNumberId: Mapped[str | None] = mapped_column(String)

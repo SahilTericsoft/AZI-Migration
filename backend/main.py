@@ -44,6 +44,10 @@ from services.test_config.router import router as test_config_router
 from services.test_order.router import router as test_order_router
 from services.user_service.router import router as user_service_router
 
+# Legacy-parity tables (no router) — imported so their models register on
+# Base.metadata for schema generation / create_all. See MIGRATION_GAPS.md Part 2.
+import services.legacy_parity.models  # noqa: E402, F401
+
 app = FastAPI(
     title=API_TITLE,
     version=API_VERSION,

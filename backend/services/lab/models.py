@@ -54,3 +54,41 @@ class LabUser(TimestampMixin, Base):
     labId: Mapped[int | None] = mapped_column(Integer, index=True)
     userId: Mapped[int | None] = mapped_column(Integer, index=True)
     locationIds: Mapped[list | None] = mapped_column(ARRAY(Integer))
+
+
+# ---------------------------------------------------------------------------
+# Lab <-> catalog assignments (which labs offer which tests/panels/biomarkers).
+# Migrated from GkLabService's LinkLabTest / LinkLabPanel / LinkLabBiomarker
+# join tables. `isActive` lets a lab keep an assignment but temporarily stop
+# offering it.
+# ---------------------------------------------------------------------------
+
+
+class LinkLabTest(TimestampMixin, Base):
+    __tablename__ = "LinkLabTests"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    labId: Mapped[int | None] = mapped_column(Integer, index=True)
+    testId: Mapped[int | None] = mapped_column(Integer, index=True)
+    isActive: Mapped[bool | None] = mapped_column(Boolean, default=True)
+    createdBy: Mapped[int | None] = mapped_column(Integer)
+
+
+class LinkLabPanel(TimestampMixin, Base):
+    __tablename__ = "LinkLabPanels"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    labId: Mapped[int | None] = mapped_column(Integer, index=True)
+    panelId: Mapped[int | None] = mapped_column(Integer, index=True)
+    isActive: Mapped[bool | None] = mapped_column(Boolean, default=True)
+    createdBy: Mapped[int | None] = mapped_column(Integer)
+
+
+class LinkLabBiomarker(TimestampMixin, Base):
+    __tablename__ = "LinkLabBiomarkers"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    labId: Mapped[int | None] = mapped_column(Integer, index=True)
+    biomarkerId: Mapped[int | None] = mapped_column(Integer, index=True)
+    isActive: Mapped[bool | None] = mapped_column(Boolean, default=True)
+    createdBy: Mapped[int | None] = mapped_column(Integer)

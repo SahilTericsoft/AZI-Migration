@@ -74,6 +74,9 @@ class Instrument(TimestampMixin, Base):
     # Uploaded docs + preventative maintenance log entries.
     attachments: Mapped[list | None] = mapped_column(JSON)
     maintenanceLogs: Mapped[list | None] = mapped_column(JSON)
+    # --- Added to match legacy AI-Portal V2 Instruments schema (MIGRATION_GAPS.md) ---
+    created_on: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_on: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Sop(TimestampMixin, Base):
@@ -86,6 +89,9 @@ class Sop(TimestampMixin, Base):
     date_of_review: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_by: Mapped[int | None] = mapped_column(Integer)
     labId: Mapped[int | None] = mapped_column(Integer)
+    # --- Added to match legacy AI-Portal V2 Sops schema (MIGRATION_GAPS.md) ---
+    created_on: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_on: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Validation(TimestampMixin, Base):
@@ -97,6 +103,9 @@ class Validation(TimestampMixin, Base):
     biomarker_cutoff_value: Mapped[dict | None] = mapped_column(JSON)
     created_by: Mapped[int | None] = mapped_column(Integer)
     labId: Mapped[int | None] = mapped_column(Integer)
+    # --- Added to match legacy AI-Portal V2 Validations schema (MIGRATION_GAPS.md) ---
+    created_on: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_on: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class LabSession(TimestampMixin, Base):
@@ -118,6 +127,19 @@ class LabSession(TimestampMixin, Base):
     lab_id: Mapped[int | None] = mapped_column(Integer)
     is_processed: Mapped[bool | None] = mapped_column(Boolean)
     orderType: Mapped[str | None] = mapped_column(String)
+    # --- Added to match legacy AI-Portal V2 LabSessions schema (MIGRATION_GAPS.md) ---
+    workflow_ids: Mapped[list | None] = mapped_column(JSON)
+    step_ids: Mapped[list | None] = mapped_column(JSON)
+    test_ids: Mapped[list | None] = mapped_column(JSON)
+    panel_ids: Mapped[list | None] = mapped_column(JSON)
+    panel_barcodes: Mapped[list | None] = mapped_column(JSON)
+    selected_test_ids: Mapped[list | None] = mapped_column(JSON)
+    processed_racks: Mapped[list | None] = mapped_column(JSON)
+    samples_processed: Mapped[list | None] = mapped_column(JSON)
+    sessions_processed: Mapped[list | None] = mapped_column(ARRAY(Integer))
+    is_extraction: Mapped[bool | None] = mapped_column(Boolean)
+    is_hybrid: Mapped[bool | None] = mapped_column(Boolean)
+    updated_by: Mapped[int | None] = mapped_column(Integer)
 
 
 class OrderReportHeader(TimestampMixin, Base):

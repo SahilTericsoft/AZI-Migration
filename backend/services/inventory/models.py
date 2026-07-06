@@ -34,6 +34,9 @@ class Product(TimestampMixin, Base):
     isDeleted: Mapped[bool | None] = mapped_column(Boolean, default=False)
     addedBy: Mapped[int | None] = mapped_column(Integer)
     productCatalogLink: Mapped[str | None] = mapped_column(String)
+    # --- Added to match legacy AI-Portal V2 Products schema (MIGRATION_GAPS.md) ---
+    lastBarcodeValue: Mapped[int | None] = mapped_column(Integer)
+    lastUpdatedBy: Mapped[int | None] = mapped_column(Integer)
 
 
 class ProductImage(TimestampMixin, Base):
@@ -63,6 +66,9 @@ class QrCode(TimestampMixin, Base):
     caption: Mapped[str | None] = mapped_column(Text)
     imageDetails: Mapped[dict | None] = mapped_column(JSON)
     billingMode: Mapped[str | None] = mapped_column(String)
+    # --- Added to match legacy AI-Portal V2 QrCodes schema (MIGRATION_GAPS.md) ---
+    expiryTime: Mapped[str | None] = mapped_column(String)
+    isIntakeFormAvailable: Mapped[bool | None] = mapped_column(Boolean)
 
 
 class Barcode(TimestampMixin, Base):
@@ -139,6 +145,8 @@ class InventoryQuantity(TimestampMixin, Base):
     reason: Mapped[str | None] = mapped_column(Text)
     isRemoved: Mapped[bool | None] = mapped_column(Boolean)
     createdBy: Mapped[int | None] = mapped_column(Integer)
+    # --- Added to match legacy AI-Portal V2 InventoryQuantities schema (MIGRATION_GAPS.md) ---
+    isUpdated: Mapped[bool | None] = mapped_column(Boolean)
 
 
 class InventoryStaticData(TimestampMixin, Base):

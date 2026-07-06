@@ -42,3 +42,22 @@ ALTER TABLE "ResultSamples" ADD COLUMN IF NOT EXISTS "value" VARCHAR;
 ALTER TABLE "Instruments" ADD COLUMN IF NOT EXISTS "vendor_phone_number" VARCHAR;
 ALTER TABLE "Instruments" ADD COLUMN IF NOT EXISTS "attachments" JSON;
 ALTER TABLE "Instruments" ADD COLUMN IF NOT EXISTS "maintenanceLogs" JSON;
+
+-- Patient: legacy multi-identifier / custom fields (in the model since the
+-- initial migration but never ALTERed onto the deployed table — any Patient
+-- SELECT 500s with "column Patients.patientId1 does not exist" until applied).
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "patientId1" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "patientId2" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "patientId3" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "alternateId1" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "alternateId2" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "assignedBy1" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "assignedBy2" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "assignedBy3" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "customField1" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "customField2" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "customField3" VARCHAR;
+
+-- Lab <-> catalog assignment: three new join tables ("LinkLabTests",
+-- "LinkLabPanels", "LinkLabBiomarkers") are created automatically by re-running
+-- scripts/init_db.py (create_all adds missing tables) — no ALTER needed.
