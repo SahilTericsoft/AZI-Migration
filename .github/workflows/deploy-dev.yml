@@ -65,7 +65,7 @@ jobs:
             --port 8080 \
             --memory 512Mi \
             --cpu 1 \
-            --min-instances 1 \
+            --min-instances 0 \
             --max-instances 3 \
             --cpu-boost \
             --set-env-vars "ENVIRONMENT=production,INSTANCE_CODE=AZI,ALLOWED_HOSTS=*" \
