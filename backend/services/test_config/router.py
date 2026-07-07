@@ -4,12 +4,16 @@ Surfaces the real legacy endpoints: add, list (rich filters), list-lite, view,
 edit, draft-aware toggle, and code-duplicate check.
 """
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm import Session
 
+from core import storage
+from core.api import ok
 from core.database import get_db
 from services.test_config import controller as c
 from services.test_config import schemas as s
+from services.test_config.models import Test
 
 router = APIRouter(prefix="/test-config")
 PANEL = ["test-config: panels"]
@@ -17,6 +21,7 @@ TEST = ["test-config: tests"]
 BIO = ["test-config: biomarkers"]
 CPT = ["test-config: cpt-codes"]
 ICD = ["test-config: icd-codes"]
+CONFIG = ["test-config: biomarker configurations"]
 
 
 # ----------------------------------------------------------------- Panels
@@ -103,6 +108,52 @@ def delete_test(test_id: int, db: Session = Depends(get_db)):
     return c.TestController(db).delete(test_id)
 
 
+# ------------------------------------------------ Test (Panel) attachments
+@router.post("/tests/{test_id}/attachments", tags=TEST)
+async def upload_test_attachment(
+    test_id: int,
+    attachmentName: str = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    """Upload a document to Azure Blob and record it on the test.
+
+    Returns 503 until `AZURE_STORAGE_CONNECTION_STRING` is configured.
+    """
+    test = db.get(Test, test_id)
+    if not test:
+        raise HTTPException(404, "Test not found")
+    data = await file.read()
+    url = storage.upload_attachment(
+        data, file.filename or "attachment", file.content_type, prefix=str(test_id)
+    )
+    record = {
+        "attachmentName": attachmentName,
+        "secureUrl": url,
+        "mimeType": file.content_type,
+        "size": len(data),
+    }
+    test.attachments = [*(test.attachments or []), record]
+    flag_modified(test, "attachments")
+    db.commit()
+    return ok(record, "Attachment uploaded")
+
+
+@router.delete("/tests/{test_id}/attachments/{index}", tags=TEST)
+def delete_test_attachment(test_id: int, index: int, db: Session = Depends(get_db)):
+    test = db.get(Test, test_id)
+    if not test:
+        raise HTTPException(404, "Test not found")
+    items = list(test.attachments or [])
+    if index < 0 or index >= len(items):
+        raise HTTPException(404, "Attachment not found")
+    items.pop(index)
+    test.attachments = items
+    flag_modified(test, "attachments")
+    db.commit()
+    return ok({}, "Attachment removed")
+
+
 # ------------------------------------------------------------- Biomarkers
 @router.post("/biomarkers", tags=BIO)
 def add_biomarker(body: s.BiomarkerCreate, db: Session = Depends(get_db)):
@@ -142,6 +193,35 @@ def toggle_biomarker(biomarker_id: int, db: Session = Depends(get_db)):
 @router.delete("/biomarkers/{biomarker_id}", tags=BIO)
 def delete_biomarker(biomarker_id: int, db: Session = Depends(get_db)):
     return c.BiomarkerController(db).delete(biomarker_id)
+
+
+# ----------------------------------------- Biomarker report configurations
+@router.get("/biomarkers/{biomarker_id}/configurations", tags=CONFIG)
+def list_biomarker_configs(biomarker_id: int, db: Session = Depends(get_db)):
+    return c.BiomarkerReportConfigController(db).list_for_biomarker(biomarker_id)
+
+
+@router.post("/biomarkers/{biomarker_id}/configurations", tags=CONFIG)
+def add_biomarker_config(
+    biomarker_id: int, body: s.BiomarkerConfigCreate, db: Session = Depends(get_db)
+):
+    return c.BiomarkerReportConfigController(db).add_for_biomarker(
+        biomarker_id, body.model_dump(exclude_unset=True)
+    )
+
+
+@router.put("/configurations/{config_id}", tags=CONFIG)
+def edit_biomarker_config(
+    config_id: int, body: s.BiomarkerConfigEdit, db: Session = Depends(get_db)
+):
+    return c.BiomarkerReportConfigController(db).edit(
+        config_id, body.model_dump(exclude_unset=True)
+    )
+
+
+@router.delete("/configurations/{config_id}", tags=CONFIG)
+def delete_biomarker_config(config_id: int, db: Session = Depends(get_db)):
+    return c.BiomarkerReportConfigController(db).remove(config_id)
 
 
 # ---------------------------------------------------------- CPT / ICD codes

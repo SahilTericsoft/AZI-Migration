@@ -90,6 +90,8 @@ class Test(TimestampMixin, Base):
     kitRedirectUrl: Mapped[str | None] = mapped_column(String)
     normalPdfTemplatePath: Mapped[str | None] = mapped_column(String)
     abnormalPdfTemplatePath: Mapped[str | None] = mapped_column(String)
+    # Uploaded documents (legacy Attachments step). [{attachmentName, secureUrl, mimeType, size}]
+    attachments: Mapped[list | None] = mapped_column(JSON)
 
 
 class Panel(TimestampMixin, Base):
@@ -128,3 +130,25 @@ class IcdCode(TimestampMixin, Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     icdCode: Mapped[str | None] = mapped_column(String)
     description: Mapped[str | None] = mapped_column(String)
+
+
+class BiomarkerReportConfiguration(TimestampMixin, Base):
+    """A per-biomarker reference-range configuration (legacy GkPanelService
+    biomarker "report configuration"). One biomarker can have many configs, keyed
+    by gender + age band. `rules` holds the comparison expressions that map a
+    measured value to a result (and, for qualitative, a display colour)."""
+
+    __tablename__ = "BiomarkerReportConfigurations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    biomarkerId: Mapped[int | None] = mapped_column(Integer, index=True)
+    gender: Mapped[str | None] = mapped_column(String)
+    age: Mapped[str | None] = mapped_column(String)
+    # rules: [{value1, value2, expression, units, result?, color?}]
+    rules: Mapped[list | None] = mapped_column(JSONB)
+    expectedResults: Mapped[str | None] = mapped_column(String)
+    isBiomarkerNoteAvailable: Mapped[bool | None] = mapped_column(Boolean, default=False)
+    biomarkerNotes: Mapped[str | None] = mapped_column(Text)
+    isActive: Mapped[bool | None] = mapped_column(Boolean, default=True)
+    isDeleted: Mapped[bool | None] = mapped_column(Boolean, default=False)
+    createdBy: Mapped[int | None] = mapped_column(Integer)

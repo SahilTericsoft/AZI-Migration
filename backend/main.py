@@ -40,6 +40,7 @@ from services.result.router import router as result_router
 from services.sample.router import router as sample_router
 from services.sendout.router import router as sendout_router
 from services.state_reporting.router import router as state_reporting_router
+from services.static_data.router import router as static_data_router
 from services.test_config.router import router as test_config_router
 from services.test_order.router import router as test_order_router
 from services.user_service.router import router as user_service_router
@@ -101,3 +102,4 @@ app.include_router(state_reporting_router)  # State Reporting (PHI)
 app.include_router(sendout_router)  # Sendout (PHI)
 app.include_router(result_router)  # Result (PHI)
 app.include_router(integration_router)  # AdvancedMD + OCR config
+app.include_router(static_data_router)  # Static option catalogs (UI enums)

@@ -20,12 +20,19 @@ from core.api import ok, paginate
 from core.controller import BaseController
 from core.ids import daily_sequence_id
 from core.populate import attach_created_by
-from services.test_config.models import Biomarker, CptCode, IcdCode, Panel, Test
+from services.test_config.models import (
+    Biomarker,
+    BiomarkerReportConfiguration,
+    CptCode,
+    IcdCode,
+    Panel,
+    Test,
+)
 
 
 def _filters(controller, query, q):
     """Apply the shared catalog filters from a list-query body."""
-    return controller.apply_filters(
+    query = controller.apply_filters(
         query,
         search=q.search,
         statuses=q.statuses,
@@ -34,6 +41,10 @@ def _filters(controller, query, q):
         end_date=q.endDate,
         sort=q.sort,
     )
+    sample_types = getattr(q, "sampleTypes", None)
+    if sample_types and "sampleType" in controller.columns:
+        query = query.filter(controller.model.sampleType.in_(sample_types))
+    return query
 
 
 def _validate_ordering_limits(data: dict) -> None:
@@ -415,3 +426,58 @@ class IcdCodeController(BaseController):
         total = query.count()
         rows = query.offset((page - 1) * limit).limit(limit).all()
         return ok(paginate([self.serialize(r) for r in rows], total, page, limit), "ICD code list")
+
+
+class BiomarkerReportConfigController(BaseController):
+    """Per-biomarker reference-range configurations. Mirrors the legacy
+    addConfiguration / editReportConfiguration / removeConfiguration calls."""
+
+    model = BiomarkerReportConfiguration
+    name = "Configuration"
+
+    def list_for_biomarker(self, biomarker_id: int) -> dict:
+        rows = (
+            self.db.query(BiomarkerReportConfiguration)
+            .filter(
+                BiomarkerReportConfiguration.biomarkerId == biomarker_id,
+                BiomarkerReportConfiguration.isDeleted.isnot(True),
+            )
+            .order_by(BiomarkerReportConfiguration.createdAt.asc())
+            .all()
+        )
+        return ok([self.serialize(r) for r in rows], "Configuration list")
+
+    def add_for_biomarker(self, biomarker_id: int, data: dict) -> dict:
+        if not self.db.get(Biomarker, biomarker_id):
+            raise HTTPException(404, "Biomarker not found")
+        payload = self.writable(data)
+        payload["biomarkerId"] = biomarker_id
+        if data.get("loginUserId") is not None:
+            payload["createdBy"] = data["loginUserId"]
+        row = BiomarkerReportConfiguration(**payload)
+        self.db.add(row)
+        self.db.commit()
+        self.db.refresh(row)
+        self.audit("create", row.id)
+        return ok(self.serialize(row), "Configuration added successfully")
+
+    def edit(self, config_id: int, data: dict) -> dict:
+        row = self.db.get(BiomarkerReportConfiguration, config_id)
+        if not row or row.isDeleted:
+            raise HTTPException(404, "Configuration not found")
+        for key, value in self.writable(data).items():
+            setattr(row, key, value)
+        self.db.commit()
+        self.db.refresh(row)
+        self.audit("update", config_id)
+        return ok(self.serialize(row), "Configuration updated successfully")
+
+    def remove(self, config_id: int) -> dict:
+        row = self.db.get(BiomarkerReportConfiguration, config_id)
+        if not row or row.isDeleted:
+            raise HTTPException(404, "Configuration not found")
+        row.isDeleted = True
+        row.isActive = False
+        self.db.commit()
+        self.audit("delete", config_id)
+        return ok({}, "Configuration removed successfully")

@@ -18,6 +18,7 @@ class CatalogListQuery(BaseModel):
     search: str | None = None
     createdByIds: list[int] | None = None
     statuses: list[str] | None = None  # active / inactive / draft / completed
+    sampleTypes: list[str] | None = None  # filter by sampleType (stored lowercase)
     startDate: str | None = None
     endDate: str | None = None
     sort: dict[str, str] | None = None  # {field: "ASC"|"DESC"}
@@ -76,4 +77,13 @@ class IcdCodeCreate(MutationBody):
 
 
 class IcdCodeEdit(MutationBody):
+    pass
+
+
+class BiomarkerConfigCreate(MutationBody):
+    gender: str
+    age: str
+
+
+class BiomarkerConfigEdit(MutationBody):
     pass

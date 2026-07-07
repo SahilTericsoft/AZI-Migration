@@ -21,6 +21,9 @@ ALTER TABLE "Labs" ADD COLUMN IF NOT EXISTS "attachments" JSON;
 -- Test order: uploaded order documents
 ALTER TABLE "Orders" ADD COLUMN IF NOT EXISTS "attachments" JSON;
 
+-- Test configuration: uploaded documents (legacy Attachments step)
+ALTER TABLE "Tests" ADD COLUMN IF NOT EXISTS "attachments" JSON;
+
 -- Panel ordering limits (per-patient monthly alert / max limit -> patient flag)
 ALTER TABLE "Panels" ADD COLUMN IF NOT EXISTS "hasOrderingLimit" BOOLEAN DEFAULT FALSE;
 ALTER TABLE "Panels" ADD COLUMN IF NOT EXISTS "alertLimit" INTEGER;
@@ -61,3 +64,7 @@ ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "customField3" VARCHAR;
 -- Lab <-> catalog assignment: three new join tables ("LinkLabTests",
 -- "LinkLabPanels", "LinkLabBiomarkers") are created automatically by re-running
 -- scripts/init_db.py (create_all adds missing tables) — no ALTER needed.
+
+-- Test Configuration: new table "BiomarkerReportConfigurations" (per-biomarker
+-- reference-range configs for the report-configuration builder) is created
+-- automatically by re-running scripts/init_db.py — no ALTER needed.
