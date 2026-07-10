@@ -284,6 +284,28 @@ class TestController(BaseController):
             "Test Code already exists" if existing else "Test Code not exists",
         )
 
+    def preview_layout(self, data: dict) -> bytes:
+        """Render a report-layout definition to a sample PDF (legacy preview).
+
+        Resolves the biomarker ids referenced by the layout to names, then hands
+        off to the ReportLab renderer. Returns raw PDF bytes.
+        """
+        from services.test_config.pdf_preview import (
+            _sections_from_payload,
+            render_layout_pdf,
+        )
+
+        ids: list[int] = []
+        for _title, section_ids in _sections_from_payload(data):
+            ids.extend(section_ids)
+
+        names: dict[int, str] = {}
+        if ids:
+            rows = self.db.query(Biomarker).filter(Biomarker.id.in_(set(ids))).all()
+            names = {b.id: (b.name or b.code or f"#{b.id}") for b in rows}
+
+        return render_layout_pdf(data, names)
+
 
 class BiomarkerController(BaseController):
     model = Biomarker

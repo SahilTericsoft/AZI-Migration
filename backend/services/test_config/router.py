@@ -4,7 +4,7 @@ Surfaces the real legacy endpoints: add, list (rich filters), list-lite, view,
 edit, draft-aware toggle, and code-duplicate check.
 """
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
 from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm import Session
 
@@ -86,6 +86,17 @@ def list_tests_lite(body: s.ListLiteQuery, db: Session = Depends(get_db)):
 @router.post("/tests/check-code", tags=TEST)
 def check_test_code(body: s.CheckCodeIn, db: Session = Depends(get_db)):
     return c.TestController(db).check_code(body.code)
+
+
+@router.post("/tests/layout-preview", tags=TEST)
+def preview_test_layout(body: s.TestLayoutPreview, db: Session = Depends(get_db)):
+    """Render the configured report layout to a sample PDF (legacy preview)."""
+    pdf = c.TestController(db).preview_layout(body.model_dump(exclude_unset=True))
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": 'inline; filename="report-preview.pdf"'},
+    )
 
 
 @router.get("/tests/{test_id}", tags=TEST)

@@ -15,3 +15,6 @@ pytest==8.3.4
 httpx==0.28.1
 azure-storage-blob==12.23.1
 python-multipart==0.0.20
+
+# pdf rendering (test-config report layout preview)
+reportlab==4.2.5

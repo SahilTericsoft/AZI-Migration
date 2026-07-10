@@ -6,7 +6,7 @@ with attribute projection, code-duplicate checks.
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from core.api import MutationBody
 
@@ -43,6 +43,24 @@ class PanelCreate(MutationBody):
 
 class PanelEdit(MutationBody):
     pass
+
+
+class TestLayoutPreview(BaseModel):
+    """Report-layout preview request (legacy `POST /test/testLayoutPreview`).
+
+    The FE report designer sends flat `blocks` (`[{title, biomarkerIds}]`); the
+    legacy shapes (`tableTitle`, nested `blocks[].groups[].tableTitle[]`) are also
+    accepted. `extra="allow"` keeps any future layout fields from being dropped.
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    layout: str | None = "layout1"
+    testName: str | None = None
+    disclaimer: str | None = None
+    footNote: str | None = None
+    tableTitle: list[dict] | None = None
+    blocks: list[dict] | None = None
 
 
 class TestCreate(MutationBody):
