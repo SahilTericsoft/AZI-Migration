@@ -21,6 +21,8 @@ from core.populate import attach_related
 from services.lab.models import Lab, LabUser
 from services.user_service.models import User
 
+from core.database import Base
+
 _LAB_ROLES = {"sendLab", "receiveLab", "sendReceiveLab"}
 
 
@@ -179,3 +181,70 @@ class LabUserController(BaseController):
     def list_by_lab(self, lab_id: int) -> dict:
         rows = self.db.query(LabUser).filter(LabUser.labId == lab_id).all()
         return ok([self.serialize(r) for r in rows], "Lab user list")
+
+
+class LinkController(BaseController):
+    """Generic lab <-> catalog-entity assignment.
+
+    Backs LinkLabTest / LinkLabPanel / LinkLabBiomarker (one instance per link
+    model). `entity_field` is the non-lab column (``testId`` / ``panelId`` /
+    ``biomarkerId``). Ported from GkLabService's assignLabTest / assignLabPanel /
+    toggleLabTest / removeLabTest routes.
+    """
+
+    name = "Lab assignment"
+
+    def __init__(self, db, model: type[Base], entity_field: str, actor_id: int | None = None):
+        self.model = model
+        self.entity_field = entity_field
+        super().__init__(db, actor_id)
+
+    def _for_entity(self, entity_id: int):
+        col = getattr(self.model, self.entity_field)
+        return self.db.query(self.model).filter(col == entity_id).order_by(self.model.id)
+
+    def set_labs(self, entity_id: int, lab_ids: list[int]) -> dict:
+        """Replace this entity's lab assignments with exactly ``lab_ids`` (each
+        active). Existing rows for those labs are re-activated; rows for labs no
+        longer listed are removed."""
+        existing = {r.labId: r for r in self._for_entity(entity_id).all()}
+        want = set(lab_ids)
+        for lid in want:
+            row = existing.get(lid)
+            if row:
+                row.isActive = True
+            else:
+                self.db.add(
+                    self.model(
+                        **{self.entity_field: entity_id},
+                        labId=lid,
+                        isActive=True,
+                        createdBy=self.actor_id,
+                    )
+                )
+        for lid, row in existing.items():
+            if lid not in want:
+                self.db.delete(row)
+        self.db.commit()
+        rows = self._for_entity(entity_id).all()
+        return ok([self.serialize(r) for r in rows], "Lab assignments updated")
+
+    def labs_for_entity(self, entity_id: int) -> dict:
+        rows = self._for_entity(entity_id).all()
+        return ok([self.serialize(r) for r in rows], "Lab assignments")
+
+    def entities_for_lab(self, lab_id: int) -> dict:
+        rows = (
+            self.db.query(self.model)
+            .filter(self.model.labId == lab_id)
+            .order_by(self.model.id)
+            .all()
+        )
+        return ok([self.serialize(r) for r in rows], "Lab assignments")
+
+    def toggle(self, link_id: int) -> dict:
+        row = self.fetch(link_id)
+        row.isActive = not bool(row.isActive)
+        self.db.commit()
+        self.db.refresh(row)
+        return ok({"id": link_id, "isActive": row.isActive}, "Assignment toggled")

@@ -6,7 +6,7 @@ responses (see SENSITIVE). Access is audited and requires authentication.
 
 from __future__ import annotations
 
-from sqlalchemy import Boolean, Float, Integer, String
+from sqlalchemy import JSON, Boolean, Float, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -77,6 +77,18 @@ class Patient(TimestampMixin, Base):
     AMDPatientId: Mapped[str | None] = mapped_column(String)
     internalPatientId: Mapped[str | None] = mapped_column(String)
     allergieIds: Mapped[list | None] = mapped_column(ARRAY(Integer))
+    # --- Added to match legacy AI-Portal V2 Patients schema (MIGRATION_GAPS.md) ---
+    patientId1: Mapped[str | None] = mapped_column(String)
+    patientId2: Mapped[str | None] = mapped_column(String)
+    patientId3: Mapped[str | None] = mapped_column(String)
+    alternateId1: Mapped[str | None] = mapped_column(String)
+    alternateId2: Mapped[str | None] = mapped_column(String)
+    assignedBy1: Mapped[str | None] = mapped_column(String)
+    assignedBy2: Mapped[str | None] = mapped_column(String)
+    assignedBy3: Mapped[str | None] = mapped_column(String)
+    customField1: Mapped[str | None] = mapped_column(String)
+    customField2: Mapped[str | None] = mapped_column(String)
+    customField3: Mapped[str | None] = mapped_column(String)
 
 
 class PatientInsurance(TimestampMixin, Base):
@@ -101,6 +113,16 @@ class PatientInsurance(TimestampMixin, Base):
     ipaMedicalGroupName: Mapped[str | None] = mapped_column(String)
     groupId: Mapped[str | None] = mapped_column(String)
     isSameName: Mapped[bool | None] = mapped_column(Boolean)
+    # --- Added to match legacy AI-Portal V2 PatientInsurances schema (MIGRATION_GAPS.md) ---
+    frontImage: Mapped[dict | None] = mapped_column(JSON)
+    backImage: Mapped[dict | None] = mapped_column(JSON)
+    clearingHouse: Mapped[str | None] = mapped_column(String)
+    clearingHouseCode: Mapped[str | None] = mapped_column(String)
+    clearingHouseId: Mapped[int | None] = mapped_column(Integer)
+    clearingHouseInsuranceId: Mapped[int | None] = mapped_column(Integer)
+    CPID: Mapped[str | None] = mapped_column(String)
+    enbotDetails: Mapped[dict | None] = mapped_column(JSON)
+    isEnbotChecked: Mapped[bool | None] = mapped_column(Boolean)
 
 
 class Allergy(TimestampMixin, Base):

@@ -7,7 +7,7 @@ schema; names stay camelCase to match the live DB.
 
 from __future__ import annotations
 
-from sqlalchemy import JSON, Boolean, Integer, String, Text
+from sqlalchemy import JSON, Boolean, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -35,6 +35,8 @@ class Biomarker(TimestampMixin, Base):
     departmentIds: Mapped[list | None] = mapped_column(ARRAY(Integer))
     reagentIds: Mapped[list | None] = mapped_column(ARRAY(Integer))
     instrumentIds: Mapped[list | None] = mapped_column(ARRAY(Integer))
+    # --- Added to match legacy AI-Portal V2 Biomarkers schema (MIGRATION_GAPS.md) ---
+    internalBiomarkerId: Mapped[str | None] = mapped_column(String)
 
 
 class Test(TimestampMixin, Base):
@@ -71,6 +73,25 @@ class Test(TimestampMixin, Base):
     departmentIds: Mapped[list | None] = mapped_column(ARRAY(Integer))
     reagentIds: Mapped[list | None] = mapped_column(ARRAY(Integer))
     instrumentIds: Mapped[list | None] = mapped_column(ARRAY(Integer))
+    # --- Added to match legacy AI-Portal V2 Tests schema (MIGRATION_GAPS.md) ---
+    reportFormat: Mapped[str | None] = mapped_column(String)
+    alertLimit: Mapped[float | None] = mapped_column(Numeric)
+    maxLimit: Mapped[float | None] = mapped_column(Numeric)
+    hasOrderingLimit: Mapped[bool | None] = mapped_column(Boolean)
+    isLinkedTest: Mapped[bool | None] = mapped_column(Boolean)
+    linkedTestId: Mapped[float | None] = mapped_column(Numeric)
+    linkedTestText: Mapped[str | None] = mapped_column(String)
+    internalTestId: Mapped[str | None] = mapped_column(String)
+    integrationDetails: Mapped[dict | None] = mapped_column(JSON)
+    loincCode: Mapped[str | None] = mapped_column(String)
+    lastBarcodeCount: Mapped[int | None] = mapped_column(Integer)
+    processOverView: Mapped[str | None] = mapped_column(String)
+    videoUrl: Mapped[str | None] = mapped_column(String)
+    kitRedirectUrl: Mapped[str | None] = mapped_column(String)
+    normalPdfTemplatePath: Mapped[str | None] = mapped_column(String)
+    abnormalPdfTemplatePath: Mapped[str | None] = mapped_column(String)
+    # Uploaded documents (legacy Attachments step). [{attachmentName, secureUrl, mimeType, size}]
+    attachments: Mapped[list | None] = mapped_column(JSON)
 
 
 class Panel(TimestampMixin, Base):
@@ -109,3 +130,25 @@ class IcdCode(TimestampMixin, Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     icdCode: Mapped[str | None] = mapped_column(String)
     description: Mapped[str | None] = mapped_column(String)
+
+
+class BiomarkerReportConfiguration(TimestampMixin, Base):
+    """A per-biomarker reference-range configuration (legacy GkPanelService
+    biomarker "report configuration"). One biomarker can have many configs, keyed
+    by gender + age band. `rules` holds the comparison expressions that map a
+    measured value to a result (and, for qualitative, a display colour)."""
+
+    __tablename__ = "BiomarkerReportConfigurations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    biomarkerId: Mapped[int | None] = mapped_column(Integer, index=True)
+    gender: Mapped[str | None] = mapped_column(String)
+    age: Mapped[str | None] = mapped_column(String)
+    # rules: [{value1, value2, expression, units, result?, color?}]
+    rules: Mapped[list | None] = mapped_column(JSONB)
+    expectedResults: Mapped[str | None] = mapped_column(String)
+    isBiomarkerNoteAvailable: Mapped[bool | None] = mapped_column(Boolean, default=False)
+    biomarkerNotes: Mapped[str | None] = mapped_column(Text)
+    isActive: Mapped[bool | None] = mapped_column(Boolean, default=True)
+    isDeleted: Mapped[bool | None] = mapped_column(Boolean, default=False)
+    createdBy: Mapped[int | None] = mapped_column(Integer)

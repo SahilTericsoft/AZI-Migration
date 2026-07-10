@@ -62,3 +62,9 @@ class LabUserCreate(MutationBody):
 
 class LabUserEdit(MutationBody):
     pass
+
+
+class AssignLabsIn(BaseModel):
+    """Set the exact set of labs assigned to a test/panel/biomarker."""
+
+    labIds: list[int] = []

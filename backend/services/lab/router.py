@@ -9,11 +9,19 @@ from core.database import get_db
 from core import storage
 from services.lab import controller as c
 from services.lab import schemas as s
-from services.lab.models import Lab
+from services.lab.models import Lab, LinkLabBiomarker, LinkLabPanel, LinkLabTest
 
 router = APIRouter(prefix="/lab")
 LAB = ["lab: labs"]
 LU = ["lab: lab-users"]
+LINK = ["lab: assignments"]
+
+# Assignment kind -> (link model, entity id column). Drives the generic routes.
+_LINKS = {
+    "tests": (LinkLabTest, "testId"),
+    "panels": (LinkLabPanel, "panelId"),
+    "biomarkers": (LinkLabBiomarker, "biomarkerId"),
+}
 
 
 # ----------------------------------------------------------------------- labs
@@ -141,3 +149,42 @@ def edit_lab_user(lu_id: int, body: s.LabUserEdit, db: Session = Depends(get_db)
 @router.delete("/lab-users/{lu_id}", tags=LU)
 def delete_lab_user(lu_id: int, db: Session = Depends(get_db)):
     return c.LabUserController(db).delete(lu_id)
+
+
+# ----------------------------------------------- lab <-> test/panel/biomarker
+# `kind` is one of: tests | panels | biomarkers.
+def _link(kind: str, db: Session):
+    if kind not in _LINKS:
+        raise HTTPException(404, "Unknown assignment kind")
+    model, field = _LINKS[kind]
+    return c.LinkController(db, model, field)
+
+
+@router.put("/assignments/{kind}/by-entity/{entity_id}", tags=LINK)
+def set_entity_labs(
+    kind: str, entity_id: int, body: s.AssignLabsIn, db: Session = Depends(get_db)
+):
+    """Replace the set of labs that offer this test/panel/biomarker."""
+    return _link(kind, db).set_labs(entity_id, body.labIds)
+
+
+@router.get("/assignments/{kind}/by-entity/{entity_id}", tags=LINK)
+def get_entity_labs(kind: str, entity_id: int, db: Session = Depends(get_db)):
+    """List the lab assignments for a test/panel/biomarker."""
+    return _link(kind, db).labs_for_entity(entity_id)
+
+
+@router.get("/assignments/{kind}/by-lab/{lab_id}", tags=LINK)
+def get_lab_entities(kind: str, lab_id: int, db: Session = Depends(get_db)):
+    """List the tests/panels/biomarkers a lab offers."""
+    return _link(kind, db).entities_for_lab(lab_id)
+
+
+@router.put("/assignments/{kind}/{link_id}/toggle", tags=LINK)
+def toggle_assignment(kind: str, link_id: int, db: Session = Depends(get_db)):
+    return _link(kind, db).toggle(link_id)
+
+
+@router.delete("/assignments/{kind}/{link_id}", tags=LINK)
+def remove_assignment(kind: str, link_id: int, db: Session = Depends(get_db)):
+    return _link(kind, db).delete(link_id)

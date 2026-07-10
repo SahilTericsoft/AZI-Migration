@@ -21,6 +21,9 @@ ALTER TABLE "Labs" ADD COLUMN IF NOT EXISTS "attachments" JSON;
 -- Test order: uploaded order documents
 ALTER TABLE "Orders" ADD COLUMN IF NOT EXISTS "attachments" JSON;
 
+-- Test configuration: uploaded documents (legacy Attachments step)
+ALTER TABLE "Tests" ADD COLUMN IF NOT EXISTS "attachments" JSON;
+
 -- Panel ordering limits (per-patient monthly alert / max limit -> patient flag)
 ALTER TABLE "Panels" ADD COLUMN IF NOT EXISTS "hasOrderingLimit" BOOLEAN DEFAULT FALSE;
 ALTER TABLE "Panels" ADD COLUMN IF NOT EXISTS "alertLimit" INTEGER;
@@ -42,3 +45,26 @@ ALTER TABLE "ResultSamples" ADD COLUMN IF NOT EXISTS "value" VARCHAR;
 ALTER TABLE "Instruments" ADD COLUMN IF NOT EXISTS "vendor_phone_number" VARCHAR;
 ALTER TABLE "Instruments" ADD COLUMN IF NOT EXISTS "attachments" JSON;
 ALTER TABLE "Instruments" ADD COLUMN IF NOT EXISTS "maintenanceLogs" JSON;
+
+-- Patient: legacy multi-identifier / custom fields (in the model since the
+-- initial migration but never ALTERed onto the deployed table — any Patient
+-- SELECT 500s with "column Patients.patientId1 does not exist" until applied).
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "patientId1" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "patientId2" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "patientId3" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "alternateId1" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "alternateId2" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "assignedBy1" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "assignedBy2" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "assignedBy3" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "customField1" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "customField2" VARCHAR;
+ALTER TABLE "Patients" ADD COLUMN IF NOT EXISTS "customField3" VARCHAR;
+
+-- Lab <-> catalog assignment: three new join tables ("LinkLabTests",
+-- "LinkLabPanels", "LinkLabBiomarkers") are created automatically by re-running
+-- scripts/init_db.py (create_all adds missing tables) — no ALTER needed.
+
+-- Test Configuration: new table "BiomarkerReportConfigurations" (per-biomarker
+-- reference-range configs for the report-configuration builder) is created
+-- automatically by re-running scripts/init_db.py — no ALTER needed.

@@ -149,3 +149,42 @@ def test_icd_code_crud_and_dedupe(client):
     assert client.post(f"{TC}/icd-codes", json={"icdCode": "E78.5"}).status_code == 409
     cid = r.json()["data"]["id"]
     assert client.get(f"{TC}/icd-codes/{cid}").json()["data"]["icdCode"] == "E78.5"
+
+
+# ------------------------------------------------------ report layout preview
+def test_layout_preview_returns_pdf(client):
+    b1 = client.post(
+        f"{TC}/biomarkers", json={"name": "Cholesterol", "code": "CHOL", "sampleType": "Blood"}
+    ).json()["data"]["id"]
+    b2 = client.post(
+        f"{TC}/biomarkers", json={"name": "HDL", "code": "HDLX", "sampleType": "Blood"}
+    ).json()["data"]["id"]
+
+    r = client.post(
+        f"{TC}/tests/layout-preview",
+        json={
+            "layout": "layout1",
+            "testName": "Lipid Profile",
+            "disclaimer": "For research use only.",
+            "footNote": "Reviewed",
+            "blocks": [{"title": "Lipids", "biomarkerIds": [b1, b2]}],
+        },
+    )
+    assert r.status_code == 200, r.text
+    assert r.headers["content-type"] == "application/pdf"
+    assert r.content[:4] == b"%PDF"
+
+
+def test_layout_preview_handles_empty_blocks(client):
+    r = client.post(f"{TC}/tests/layout-preview", json={"layout": "layout1", "blocks": []})
+    assert r.status_code == 200
+    assert r.content[:4] == b"%PDF"
+
+
+def test_layout_preview_accepts_legacy_table_title(client):
+    r = client.post(
+        f"{TC}/tests/layout-preview",
+        json={"layout": "layout5", "tableTitle": [{"title": "Panel", "biomarkerIds": []}]},
+    )
+    assert r.status_code == 200
+    assert r.content[:4] == b"%PDF"
